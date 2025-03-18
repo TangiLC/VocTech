@@ -1,1 +1,113 @@
-/f41fc43c-45f6-41e0-817c-d3b9efd2e7d5-mysql240.lecadrenhl095lc.2025-03-18-20h35
+# === GENERAL ===
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+
+# === BACKEND (Spring Boot) ===
+
+## Java build files
+/target/
+/out/
+*.class
+*.jar
+*.war
+*.ear
+
+## Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+target/
+
+## Lombok
+.lombok/
+
+## Logs and temp files
+logs/
+*.log
+hs_err_pid*
+heapdump.hprof
+
+## Spring Boot environment
+.env
+*.env
+application-*.yml
+application-*.properties
+secrets.yml
+config/
+config/*
+
+# === FRONTEND (Angular) ===
+
+## Angular build files
+node_modules/
+dist/
+tmp/
+.out-tsc/
+.angular/
+.angular-cache/
+
+## TypeScript
+*.tsbuildinfo
+
+## Environment files
+src/environments/environment.ts
+src/environments/environment.prod.ts
+
+## NPM / Yarn
+package-lock.json
+yarn.lock
+.pnp
+.pnp.js
+
+## Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## Coverage and test reports
+coverage/
+.jest/
+.nyc_output/
+test-results/
+
+# === TOOLS ===
+
+## IDE
+.vscode/
+*.vscode
+
+## System files
+*.bak
+*.tmp
+*.cache
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+## SonarQube
+.sonar/
+.scannerwork/
+
+## Docker
+docker-compose.override.yml
+docker-compose.override.yaml
+
+## CI/CD
+/ci/
+/deployment/
+
+## Git & Git LFS
+.gitattributes
+.gitignore
+.gitmodules
+.gitkeep
