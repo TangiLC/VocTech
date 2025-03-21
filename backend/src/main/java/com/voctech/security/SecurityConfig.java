@@ -69,10 +69,12 @@ public class SecurityConfig {
         auth
           .requestMatchers(
             "/swagger-ui/**",
+            "/swagger-ui.html",
             "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/auth/**"
+            "/swagger-resources/**"
           )
+          .permitAll()
+          .requestMatchers("/auth/**")
           .permitAll()
           .requestMatchers("/database/**")
           .hasAuthority("ADMIN")

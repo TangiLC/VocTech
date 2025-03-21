@@ -11,6 +11,11 @@ import com.voctech.repository.RoleRepository;
 import com.voctech.repository.UserRepository;
 import com.voctech.security.jwt.JwtTokenProvider;
 import com.voctech.security.service.UserDetailsImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
@@ -25,26 +30,55 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Contrôleur d'authentification 
+ * permettant aux utilisateurs de s'inscrire et de se connecter.
+ */
 @RestController
 @RequestMapping("/auth")
+@Tag(
+  name = "Authentification",
+  description = "Endpoints pour l'authentification et l'inscription des utilisateurs"
+)
 public class AuthController {
 
   @Autowired
-  AuthenticationManager authenticationManager;
+  private AuthenticationManager authenticationManager;
 
   @Autowired
-  UserRepository userRepository;
+  private UserRepository userRepository;
 
   @Autowired
-  RoleRepository roleRepository;
+  private RoleRepository roleRepository;
 
   @Autowired
-  PasswordEncoder encoder;
+  private PasswordEncoder encoder;
 
   @Autowired
-  JwtTokenProvider jwtTokenProvider;
+  private JwtTokenProvider jwtTokenProvider;
 
+  /**
+   * Authentifie un utilisateur et génère un jeton JWT.
+   *
+   * @param loginRequest Requête contenant le nom d'utilisateur et le mot de passe.
+   * @return Une réponse contenant le jeton JWT et les détails de l'utilisateur.
+   */
   @PostMapping("/login")
+  @Operation(
+    summary = "Authentification de l'utilisateur",
+    description = "Permet à un utilisateur de se connecter et d'obtenir un jeton JWT.",
+    responses = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Authentification réussie",
+        content = @Content(schema = @Schema(implementation = JwtResponse.class))
+      ),
+      @ApiResponse(
+        responseCode = "401",
+        description = "Identifiants invalides"
+      ),
+    }
+  )
   public ResponseEntity<?> authenticateUser(
     @Valid @RequestBody LoginRequest loginRequest
   ) {
@@ -76,7 +110,30 @@ public class AuthController {
     );
   }
 
+  /**
+   * Enregistre un nouvel utilisateur dans la base de données.
+   *
+   * @param signUpRequest Requête contenant les informations de l'utilisateur.
+   * @return Une réponse indiquant si l'inscription a réussi.
+   */
   @PostMapping("/register")
+  @Operation(
+    summary = "Inscription d'un utilisateur",
+    description = "Permet à un nouvel utilisateur de s'inscrire avec un rôle spécifique.",
+    responses = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Utilisateur enregistré avec succès",
+        content = @Content(
+          schema = @Schema(implementation = MessageResponse.class)
+        )
+      ),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Erreur lors de l'inscription (nom d'utilisateur ou email déjà utilisé)"
+      ),
+    }
+  )
   public ResponseEntity<?> registerUser(
     @Valid @RequestBody SignupRequest signUpRequest
   ) {
@@ -92,7 +149,7 @@ public class AuthController {
         .body(new MessageResponse("Erreur: Email déjà utilisé!"));
     }
 
-    // Create new user's account
+    // Création du compte utilisateur
     User user = new User(
       signUpRequest.getUsername(),
       signUpRequest.getEmail(),

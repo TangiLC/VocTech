@@ -36,11 +36,12 @@ CREATE TABLE
         `id` bigint NOT NULL AUTO_INCREMENT,
         `email` varchar(255) NOT NULL,
         `password` varchar(255) NOT NULL,
-        `pseudo` varchar(100) NOT NULL,
+        `username` varchar(100) NOT NULL,
         `ranking` int DEFAULT '0',
+        `role` ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER';
         PRIMARY KEY (`id`),
         UNIQUE KEY `email` (`email`),
-        UNIQUE KEY `pseudo` (`pseudo`)
+        UNIQUE KEY `username` (`username`)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
 DROP TABLE IF EXISTS `words`;

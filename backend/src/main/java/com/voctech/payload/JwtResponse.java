@@ -27,11 +27,5 @@ public class JwtResponse {
     this.roles = roles;
   }
 
-  public String getAccessToken() {
-    return token;
-  }
-
-  public String getTokenType() {
-    return type;
-  }
+  
 }
