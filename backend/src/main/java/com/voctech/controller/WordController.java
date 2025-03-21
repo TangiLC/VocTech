@@ -1,7 +1,6 @@
 package com.voctech.controller;
 
 import com.voctech.payload.UpdateWordRequest;
-import com.voctech.payload.WordRequest;
 import com.voctech.payload.WordResponse;
 import com.voctech.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,7 +42,7 @@ public class WordController {
    * @return Liste de mots correspondant au critère de recherche
    */
   @Operation(
-    summary = "Recherche de mots",
+    summary = "Recherche de mots dans les dictionnaires",
     description = "Recherche tous les mots contenant la séquence donnée, indépendamment des majuscules et des accents.",
     responses = {
       @ApiResponse(
@@ -60,14 +59,16 @@ public class WordController {
       ),
     }
   )
-  @PreAuthorize("isAuthenticated()") // Vérifie que l'utilisateur est authentifié via JWT
-  @GetMapping
+  @PreAuthorize("hasAuthority('USER')") // Vérifie que l'utilisateur est authentifié via JWT
+  @GetMapping("/search")
   public ResponseEntity<List<WordResponse>> getWords(
-    @RequestBody WordRequest request
+    @RequestParam String word
   ) {
-    List<WordResponse> words = wordService.searchWords(request.getWord());
+    List<WordResponse> words = wordService.searchWords(word);
     return ResponseEntity.ok(words);
   }
+
+
 
   /**
    * Met à jour un mot existant dans la base de données.

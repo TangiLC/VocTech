@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Word {
 
   @Id
@@ -29,4 +31,10 @@ public class Word {
     inverseJoinColumns = @JoinColumn(name = "theme_id")
   )
   private Set<Theme> themes;
+
+  @OneToMany(mappedBy = "wordSource")
+  private Set<WordRelation> sourceRelations;
+  
+  @OneToMany(mappedBy = "wordTarget")
+  private Set<WordRelation> targetRelations;
 }

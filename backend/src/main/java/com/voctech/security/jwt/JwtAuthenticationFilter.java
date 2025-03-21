@@ -36,13 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     JwtAuthenticationFilter.class
   );
 
-  // Liste des chemins qui ne nécessitent pas d'authentification
+  // Liste des chemins qui ne nécessitent pas d'authentification - alignés avec SecurityConfig
   private final List<String> PUBLIC_PATHS = Arrays.asList(
     "/auth/",
     "/swagger-ui/",
-    "/v3/api-docs/"
+    "/v3/api-docs/",
+    "/swagger-resources/",
+    "/swagger-ui.html"
   );
 
+  @SuppressWarnings("null")
   @Override
   protected void doFilterInternal(
     HttpServletRequest request,
@@ -50,18 +53,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     FilterChain filterChain
   ) throws ServletException, IOException {
     try {
-      // Vérifier si le chemin demandé est public
-      String path = request.getServletPath();
-      if (isPublicPath(path)) {
-        // Si c'est un chemin public, passer directement à la chaîne de filtres suivante
-        filterChain.doFilter(request, response);
-        return;
-      }
-
-      // Sinon, procéder à l'authentification JWT
+      // Récupérer le JWT depuis l'en-tête
       String jwt = getJwtFromRequest(request);
+      String path = request.getServletPath();
+
+      logger.debug("Processing request for path: {}", path);
+      logger.debug("JWT token present: {}", StringUtils.hasText(jwt));
+
+      // Si le token est présent et valide, configurer l'authentification
       if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+        logger.debug("JWT token is valid");
         String username = tokenProvider.getUsernameFromToken(jwt);
+        logger.debug("Username extracted from token: {}", username);
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(
           username
         );
@@ -73,22 +77,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         authentication.setDetails(
           new WebAuthenticationDetailsSource().buildDetails(request)
         );
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        logger.debug(
+          "Authentication set in SecurityContextHolder for user: {}",
+          username
+        );
+      } else if (StringUtils.hasText(jwt)) {
+        logger.warn("Invalid JWT token: {}", jwt);
+      } else {
+        logger.debug("No JWT token found in request");
       }
     } catch (Exception ex) {
       logger.error("Could not set user authentication in security context", ex);
+      // Ne pas supprimer l'exception, laisser Spring Security gérer la réponse
     }
 
     filterChain.doFilter(request, response);
   }
 
-  // Méthode pour vérifier si un chemin est public
-  private boolean isPublicPath(String path) {
-    return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
-  }
-
   private String getJwtFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader(jwtHeader);
-    return tokenProvider.getJwtFromHeader(bearerToken);
+    logger.debug("Raw Authorization header: {}", bearerToken);
+
+    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+      return bearerToken.substring(7);
+    }
+
+    return null;
   }
 }

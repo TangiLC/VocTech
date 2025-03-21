@@ -2,13 +2,18 @@ package com.voctech.service;
 
 import com.voctech.model.Theme;
 import com.voctech.model.Word;
+import com.voctech.model.WordRelation;
+import com.voctech.payload.RelatedWordResponse;
 import com.voctech.payload.UpdateWordRequest;
 import com.voctech.payload.WordResponse;
 import com.voctech.repository.ThemeRepository;
 import com.voctech.repository.WordRepository;
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,15 +46,61 @@ public class WordService {
     return wordRepository
       .findByWordContainingIgnoreCase(normalizedWord)
       .stream()
-      .map(w ->
-        new WordResponse(
-          w.getId(),
-          w.getWord(),
-          w.getLanguage(),
-          w.getThemes().stream().map(Theme::getId).collect(Collectors.toList())
-        )
-      )
+      .map(this::mapWordToResponse)
       .collect(Collectors.toList());
+  }
+
+  // Méthode principale, qui initialise l'ensemble des mots déjà visités
+  private WordResponse mapWordToResponse(Word w) {
+    Set<Long> visitedWordIds = new HashSet<>();
+    visitedWordIds.add(w.getId());
+    return mapWordToResponseWithVisited(w, visitedWordIds);
+  }
+
+  // Méthode récursive avec suivi des mots visités
+  private WordResponse mapWordToResponseWithVisited(
+    Word w,
+    Set<Long> visitedWordIds
+  ) {
+    // Récupérer les IDs des thèmes
+    List<Integer> themeIds = w
+      .getThemes()
+      .stream()
+      .map(Theme::getId)
+      .collect(Collectors.toList());
+
+    // Créer la structure des relations
+    Map<String, List<RelatedWordResponse>> relations = new HashMap<>();
+    relations.put("translation", new ArrayList<>());
+    relations.put("synonym", new ArrayList<>());
+    relations.put("antonym", new ArrayList<>());
+
+    // Remplir les relations (niveau 1 uniquement, sans récursion)
+    if (w.getSourceRelations() != null) {
+      for (WordRelation relation : w.getSourceRelations()) {
+        Word targetWord = relation.getWordTarget();
+        if (targetWord != null) {
+          RelatedWordResponse relatedWord = new RelatedWordResponse(
+            targetWord.getId(),
+            targetWord.getWord(),
+            targetWord.getLanguage()
+          );
+          String relationType = relation.getType().name().toLowerCase();
+          // Ajouter le mot cible si le type de relation est reconnu
+          if (relations.containsKey(relationType)) {
+            relations.get(relationType).add(relatedWord);
+          }
+        }
+      }
+    }
+
+    return new WordResponse(
+      w.getId(),
+      w.getWord(),
+      w.getLanguage(),
+      themeIds,
+      relations
+    );
   }
 
   /**
@@ -89,22 +140,23 @@ public class WordService {
   }
 
   /**
-     * Supprime un mot et ses relations en cascade.
-     *
-     * @param id ID du mot à supprimer
-     * @return ResponseEntity avec un message de succès ou une erreur si l'ID est inexistant.
-     */
-    @Transactional
-    public ResponseEntity<?> deleteWord(Long id) {
-        Optional<Word> existingWordOpt = wordRepository.findById(id);
-        if (existingWordOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("{\"error\": \"ID du mot inexistant\"}");
-        }
-        
-        wordRepository.delete(existingWordOpt.get());
-        return ResponseEntity.ok("{\"message\": \"Mot supprimé avec succès\"}");
+   * Supprime un mot et ses relations en cascade.
+   *
+   * @param id ID du mot à supprimer
+   * @return ResponseEntity avec un message de succès ou une erreur si l'ID est inexistant.
+   */
+  @Transactional
+  public ResponseEntity<?> deleteWord(Long id) {
+    Optional<Word> existingWordOpt = wordRepository.findById(id);
+    if (existingWordOpt.isEmpty()) {
+      return ResponseEntity
+        .badRequest()
+        .body("{\"error\": \"ID du mot inexistant\"}");
     }
 
+    wordRepository.delete(existingWordOpt.get());
+    return ResponseEntity.ok("{\"message\": \"Mot supprimé avec succès\"}");
+  }
 
   /**
    * Normalise une chaîne de caractères en supprimant les accents et en mettant en minuscules.
@@ -128,8 +180,7 @@ public class WordService {
   private Set<Theme> getThemesByIds(List<Integer> themeIds) {
     Set<Theme> themes = new HashSet<>();
     if (themeIds != null) {
-      themeIds.forEach(id ->
-        themeRepository.findById(id).ifPresent(themes::add)
+      themeIds.forEach(id -> themeRepository.findById(id).ifPresent(themes::add)
       );
     }
     return themes;

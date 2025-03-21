@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class WordRelation {
 
   @Id
@@ -38,8 +40,8 @@ public class WordRelation {
   private RelationType type;
 
   public enum RelationType {
-    TRANSLATION,
-    SYNONYM,
-    ANTONYM,
+    translation,
+    synonym,
+    antonym,
   }
 }
