@@ -1,11 +1,22 @@
+
 mat-toolbar {
   display: flex;
   justify-content: space-between;
-  background-color: brown;
+  background-color: #C4A484;
 }
 .spacer {
   flex: 1;
 }
 nav a {
   margin: 0 10px;
+}
+
+.custom-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.flag{
+  padding:0;
+  font-size: x-large;
 }

@@ -1,1 +1,23 @@
-<p>login works!</p>
+<div class="login-wrapper">
+  <mat-card class="login-card">
+    <mat-card-title>{{ labels[currentLanguage].login }}</mat-card-title>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ labels[currentLanguage].username }}</mat-label>
+        <input matInput formControlName="username" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ labels[currentLanguage].password }}</mat-label>
+        <input matInput type="password" formControlName="password" required>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+        {{ labels[currentLanguage].login }}
+      </button>
+
+      <p class="error" *ngIf="errorMessage">{{ labels[currentLanguage].credentialErrorMessage }}</p>
+    </form>
+  </mat-card>
+</div>

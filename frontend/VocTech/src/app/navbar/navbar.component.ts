@@ -4,8 +4,6 @@ import {
   computed,
   effect,
   inject,
-  Inject,
-  OnInit,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
@@ -13,8 +11,9 @@ import { AuthService } from '../services/auth.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { filter } from 'rxjs';
+import { Router, RouterModule } from '@angular/router';
+import { BehaviorSubject, filter } from 'rxjs';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-navbar',
@@ -31,7 +30,9 @@ import { filter } from 'rxjs';
 export class NavbarComponent {
   private router = inject(Router);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  currentLanguage = signal<'fr' | 'en'>('fr');
+  private languageSubject = new BehaviorSubject<'fr' | 'en'>('fr');
+
+  languageService = inject(LanguageService);
   labels = {
     fr: {
       theme: 'Thème',
@@ -66,7 +67,7 @@ export class NavbarComponent {
   }
 
   toggleLanguage(): void {
-    this.currentLanguage.set(this.currentLanguage() === 'fr' ? 'en' : 'fr');
+    this.languageService.toggleLanguage();
   }
   goToLogin(): void {
     this.router.navigate(['/login']);
