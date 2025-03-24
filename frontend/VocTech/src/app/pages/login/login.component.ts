@@ -73,19 +73,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Abonnement aux changements de langue
     this.languageSubscription = this.languageService.language$.subscribe(
       (lang) => {
         this.currentLanguage = lang;
       }
     );
-
-    // Initialisation avec la langue courante du service
     this.currentLanguage = this.languageService.getCurrentLanguage();
   }
 
   ngOnDestroy() {
-    // Désabonnement pour éviter les fuites de mémoire
     this.languageSubscription?.unsubscribe();
   }
 
@@ -102,7 +98,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.router.navigate(['/theme']); // Redirection vers la page d'accueil
+          this.router.navigate(['/theme']);
         },
         error: () => {
           this.errorMessage =

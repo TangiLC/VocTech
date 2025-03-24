@@ -1,1 +1,7 @@
-<p>theme works!</p>
+<div class="theme-wrapper">
+  <div class="theme-container">
+    <div *ngFor="let theme of themes$ | async">
+      {{currentLanguage === 'fr' ? theme.nameFr : theme.nameEn}}
+    </div>
+  </div>
+</div>
