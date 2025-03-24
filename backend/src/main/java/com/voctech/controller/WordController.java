@@ -59,7 +59,7 @@ public class WordController {
       ),
     }
   )
-  @PreAuthorize("hasAuthority('USER')") // Vérifie que l'utilisateur est authentifié via JWT
+  @PreAuthorize("hasAuthority('USER')") 
   @GetMapping("/search")
   public ResponseEntity<List<WordResponse>> getWords(
     @RequestParam String word
