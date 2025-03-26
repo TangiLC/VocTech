@@ -1,20 +1,50 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button>
+  <!-- Home Button -->
+  <button mat-icon-button routerLink="/home">
     <mat-icon>home</mat-icon>
   </button>
+
+  <!-- Burger Menu Button - Only visible on mobile view -->
+  <button mat-icon-button (click)="toggleMenu()"
+          *ngIf="!(isHomePage()) && isMobileView()"
+          [attr.aria-label]="(languageService.language$ | async) === 'fr' ? 'Menu' : 'Menu'">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <!-- Navigation Links - Hidden on mobile, shown on desktop -->
+  <nav *ngIf="!(isHomePage()) && !isMobileView()">
+    <a mat-button routerLink="/theme">{{ (languageService.language$ | async) === 'fr' ? labels.fr.theme : labels.en.theme }}</a>
+    <a mat-button routerLink="/mot">{{ (languageService.language$ | async) === 'fr' ? labels.fr.word : labels.en.word }}</a>
+    <a mat-button routerLink="/database">{{ (languageService.language$ | async) === 'fr' ? labels.fr.database : labels.en.database }}</a>
+  </nav>
+
   <span class="spacer"></span>
+
   <ng-container *ngIf="(languageService.language$ | async) as currentLanguage">
-    <nav *ngIf="!isHomePage()">
-      <a mat-button routerLink="/theme">{{ labels[currentLanguage].theme }}</a>
-      <a mat-button routerLink="/mot">{{ labels[currentLanguage].mot }}</a>
-      <a mat-button routerLink="/database">{{ labels[currentLanguage].database }}</a>
-    </nav>
+    <!-- Language Toggle -->
     <button mat-button (click)="toggleLanguage()" class="flag">
       {{ currentLanguage == 'fr' ? '🇫🇷' : '🇬🇧' }}
     </button>
+
+    <!-- Login/Logout Button -->
     <button mat-icon-button (click)="isHomePage() ? goToLogin() : logout()">
       <mat-icon *ngIf="isHomePage()" [title]="labels[currentLanguage].login">login</mat-icon>
       <mat-icon *ngIf="!isHomePage()" [title]="labels[currentLanguage].logout">logout</mat-icon>
     </button>
   </ng-container>
 </mat-toolbar>
+
+<!-- Dropdown Menu - Only for mobile view -->
+<div *ngIf="isMenuOpen() && !(isHomePage()) && isMobileView()" class="mobile-menu">
+  <ng-container *ngIf="(languageService.language$ | async) as currentLanguage">
+    <button mat-button (click)="navigateTo('/theme')">
+      {{ labels[currentLanguage].theme }}
+    </button>
+    <button mat-button (click)="navigateTo('/mot')">
+      {{ labels[currentLanguage].word }}
+    </button>
+    <button mat-button (click)="navigateTo('/database')">
+      {{ labels[currentLanguage].database }}
+    </button>
+  </ng-container>
+</div>

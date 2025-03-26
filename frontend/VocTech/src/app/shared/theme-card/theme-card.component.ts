@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import colors from './theme-colors.json';
+import bgColors from './theme-colors.json';
 
 @Component({
   selector: 'app-theme-card',
@@ -16,15 +16,14 @@ export class ThemeCardComponent {
   @Input() content: string = '';
 
   get titleBackground(): string {
-    const color = colors.theme[this.id];
-    console.log(this.id,color)
-    if (!color) return 'red';
-    return `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.8)`;
+    const rgb = bgColors.theme[this.id];
+    if (!rgb) return 'transparent';
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.8)`;
   }
 
   get contentBackground(): string {
-    const color = colors.theme[this.id];
-    if (!color) return 'transparent';
-    return `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
+    const rgb = bgColors.theme[this.id];
+    if (!rgb) return 'transparent';
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`;
   }
 }

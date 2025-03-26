@@ -2,7 +2,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
-  effect,
   inject,
   PLATFORM_ID,
   signal,
@@ -18,7 +17,7 @@ import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-navbar',
-  standalone: true, // Assurez-vous d'utiliser le mode standalone
+  standalone: true,
   imports: [
     CommonModule,
     MatToolbarModule,
@@ -37,44 +36,60 @@ export class NavbarComponent implements OnInit {
   labels = {
     fr: {
       theme: 'Thème',
-      mot: 'Mot',
+      word: 'Mot',
       database: 'Base de données',
       login: 'Connexion',
       logout: 'Déconnexion',
+      menu: 'Menu',
     },
     en: {
       theme: 'Theme',
-      mot: 'Word',
+      word: 'Word',
       database: 'Database',
-      login: 'login',
-      logout: 'logout',
+      login: 'Login',
+      logout: 'Logout',
+      menu: 'Menu',
     },
   };
 
   currentUrl = signal<string>('');
+  isMenuOpen = signal<boolean>(false);
+  isMobileView = signal<boolean>(false);
+
   isHomePage = computed(
-    () => this.currentUrl() === '/home' || this.currentUrl() === '/'
-  );
-
-  isNavbarHidden = computed(
     () =>
-      this.currentUrl().startsWith('/auth/') &&
-      (this.isBrowser ? window.innerWidth < 758 : false)
+      this.currentUrl() === '/home' ||
+      this.currentUrl() === '/' ||
+      this.currentUrl() === '/login'
   );
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) {
+    if (this.isBrowser) {
+      this.checkScreenWidth();
+      window.addEventListener('resize', this.checkScreenWidth.bind(this));
+    }
+  }
+
+  checkScreenWidth(): void {
+    this.isMobileView.set(window.innerWidth < 768);
+  }
 
   ngOnInit() {
-    // Écouter les événements de navigation pour mettre à jour l'URL
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.currentUrl.set(this.router.url);
+        // Close menu on navigation
+        this.isMenuOpen.set(false);
       });
   }
 
   toggleLanguage(): void {
     this.languageService.toggleLanguage();
+  }
+
+  toggleMenu(): void {
+    this.isMenuOpen.set(!this.isMenuOpen());
   }
 
   goToLogin(): void {
@@ -85,5 +100,16 @@ export class NavbarComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/home']);
     console.log('Déconnecté');
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+    this.isMenuOpen.set(false);
+  }
+
+  ngOnDestroy(): void {
+    if (this.isBrowser) {
+      window.removeEventListener('resize', this.checkScreenWidth.bind(this));
+    }
   }
 }
