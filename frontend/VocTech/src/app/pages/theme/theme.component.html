@@ -1,7 +1,8 @@
-<div class="theme-wrapper">
-  <div class="theme-container">
-    <div *ngFor="let theme of themes$ | async">
-      {{currentLanguage === 'fr' ? theme.nameFr : theme.nameEn}}
-    </div>
+<div class="theme-container">
+  <div class="theme-grid">
+    <app-theme-card *ngFor="let theme of themes$ | async" [id]=theme.id
+      [title]="currentLanguage === 'fr' ? theme.nameFr : theme.nameEn"
+      [content]="currentLanguage === 'fr' ? theme.descFr : theme.descEn">
+    </app-theme-card>
   </div>
 </div>
