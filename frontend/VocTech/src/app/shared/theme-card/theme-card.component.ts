@@ -2,19 +2,28 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { WordSearchInputComponent } from '../wordSearch-input/wordSearch-input.component';
+import { WordsTableComponent } from '../words-table/wordsTable.component';
 import bgColors from './theme-colors.json';
+import { Observable } from 'rxjs';
+import { WordResponse } from '../../dto/wordResponse.dto';
 
 @Component({
   selector: 'app-theme-card',
   templateUrl: './theme-card.component.html',
   styleUrls: ['./theme-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule, WordSearchInputComponent],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    WordSearchInputComponent,
+    WordsTableComponent,
+  ],
 })
 export class ThemeCardComponent {
   @Input() id: number = 0;
   @Input() title: string = '';
   @Input() content: string = '';
+  results$!: Observable<WordResponse[]>;
 
   get titleBackground(): string {
     const rgb = bgColors.theme[this.id];
