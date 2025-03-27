@@ -86,13 +86,26 @@ public class DatabaseService {
     wordRepository.save(word1);
     wordRepository.save(word2);
 
-    WordRelation wordRelation = WordRelation
+    RelationType relationType = RelationType.valueOf(
+      request.getRelation().toUpperCase()
+    );
+
+    WordRelation wordRelationAtoB = WordRelation
       .builder()
       .wordSource(word1)
       .wordTarget(word2)
-      .type(RelationType.valueOf(request.getRelation().toUpperCase()))
+      .type(relationType)
       .build();
-    wordRelationRepository.save(wordRelation);
+
+    WordRelation wordRelationBtoA = WordRelation
+      .builder()
+      .wordSource(word2)
+      .wordTarget(word1)
+      .type(relationType)
+      .build();
+
+    wordRelationRepository.save(wordRelationAtoB);
+    wordRelationRepository.save(wordRelationBtoA);
 
     return ResponseEntity
       .ok()
