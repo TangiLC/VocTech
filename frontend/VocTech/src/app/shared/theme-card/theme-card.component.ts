@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { WordSearchInputComponent } from '../wordSearch-input/wordSearch-input.component';
 import bgColors from './theme-colors.json';
 
 @Component({
@@ -8,7 +9,7 @@ import bgColors from './theme-colors.json';
   templateUrl: './theme-card.component.html',
   styleUrls: ['./theme-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, MatCardModule, WordSearchInputComponent],
 })
 export class ThemeCardComponent {
   @Input() id: number = 0;

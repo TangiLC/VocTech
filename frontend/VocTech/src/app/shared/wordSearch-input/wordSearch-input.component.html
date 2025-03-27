@@ -1,0 +1,19 @@
+<mat-form-field appearance="fill" class="full-width">
+  <mat-label>Rechercher un mot</mat-label>
+  <input matInput [formControl]="searchControl" placeholder="Tapez un mot..." />
+
+  <mat-error *ngIf="searchControl.hasError('pattern')">
+    Seuls les caractères alphanumériques, tirets (-), apostrophes (') et points d’interrogation (?) sont autorisés.
+  </mat-error>
+</mat-form-field>
+
+<div *ngIf="results$ | async as results">
+  <mat-list *ngIf="results.length > 0; else noResults">
+    <mat-list-item *ngFor="let word of results">
+      {{ word.word }} <small>({{ word.language }})</small>
+    </mat-list-item>
+  </mat-list>
+  <ng-template #noResults>
+    <p>Aucun résultat trouvé.</p>
+  </ng-template>
+</div>
