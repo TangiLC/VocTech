@@ -35,16 +35,16 @@ export class NavbarComponent implements OnInit {
 
   labels = {
     fr: {
-      theme: 'Thème',
-      word: 'Mot',
+      theme: 'Les Thèmes',
+      word: 'Recherche',
       database: 'Base de données',
       login: 'Connexion',
       logout: 'Déconnexion',
       menu: 'Menu',
     },
     en: {
-      theme: 'Theme',
-      word: 'Word',
+      theme: 'Themes',
+      word: 'Search',
       database: 'Database',
       login: 'Login',
       logout: 'Logout',

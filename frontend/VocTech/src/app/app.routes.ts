@@ -13,13 +13,13 @@ export const routes: Routes = [
       import('./pages/login/login.component').then((c) => c.LoginComponent),
   },
   {
-    path: 'theme',
+    path: 'themes',
     loadComponent: () =>
       import('./pages/theme/theme.component').then((c) => c.ThemeComponent),
     canActivate: [() => inject(AuthGuard).canActivate()],
   },
   {
-    path: 'word-search',
+    path: 'search',
     loadComponent: () =>
       import('./pages/word-search/word-search.component').then(
         (c) => c.WordSearchComponent

@@ -64,48 +64,15 @@ public class DatabaseService {
       }
     }
 
-    Set<Theme> themes1 = getThemesByIds(wordEntries.get(0).getThemeId());
-    Set<Theme> themes2 = getThemesByIds(wordEntries.get(1).getThemeId());
-
-    Word word1 = Word
-      .builder()
-      .word(wordEntries.get(0).getWord())
-      .language(wordEntries.get(0).getLanguage())
-      //.themes(getThemesByIds(wordEntries.get(0).getThemeId()))
-      .build();
-    Word word2 = Word
-      .builder()
-      .word(wordEntries.get(1).getWord())
-      .language(wordEntries.get(1).getLanguage())
-      //.themes(getThemesByIds(wordEntries.get(1).getThemeId()))
-      .build();
-
-    word1.setThemes(themes1);
-    word2.setThemes(themes2);
-
-    wordRepository.save(word1);
-    wordRepository.save(word2);
+    List<DatabaseRequest.WordEntry> wordEntriesList = request.getEntries();
+    Word word1 = createAndSaveWord(wordEntriesList.get(0));
+    Word word2 = createAndSaveWord(wordEntriesList.get(1));
 
     RelationType relationType = RelationType.valueOf(
       request.getRelation().toUpperCase()
     );
 
-    WordRelation wordRelationAtoB = WordRelation
-      .builder()
-      .wordSource(word1)
-      .wordTarget(word2)
-      .type(relationType)
-      .build();
-
-    WordRelation wordRelationBtoA = WordRelation
-      .builder()
-      .wordSource(word2)
-      .wordTarget(word1)
-      .type(relationType)
-      .build();
-
-    wordRelationRepository.save(wordRelationAtoB);
-    wordRelationRepository.save(wordRelationBtoA);
+    createSymmetricRelation(word1, word2, relationType);
 
     return ResponseEntity
       .ok()
@@ -159,13 +126,76 @@ public class DatabaseService {
       .build();
     wordRepository.save(newWord);
 
-    WordRelation wordRelation = WordRelation
-      .builder()
-      .wordSource(existingSourceWord.get())
-      .wordTarget(newWord)
-      .type(RelationType.valueOf(request.getRelation().toUpperCase()))
-      .build();
-    wordRelationRepository.save(wordRelation);
+    RelationType newRelationType = RelationType.valueOf(
+      request.getRelation().toUpperCase()
+    );
+    Word existingSource = existingSourceWord.get();
+
+    // Création de la relation de base entre A et E (de manière symétrique)
+    createSymmetricRelation(existingSource, newWord, newRelationType);
+
+    // Propagation des relations existantes de A vers E
+    Set<WordRelation> aRelations = existingSource.getSourceRelations();
+    if (aRelations != null) {
+      if (newRelationType == RelationType.synonym) {
+        // Pour A synonym E, on propage :
+        // - A synonym B  -> E synonym B
+        // - A antonym C  -> E antonym C
+        // - A translation D -> E translation D
+        for (WordRelation rel : aRelations) {
+          RelationType relType = rel.getType();
+          Word relatedWord = rel.getWordTarget();
+          if (relType == RelationType.synonym) {
+            createSymmetricRelation(newWord, relatedWord, RelationType.synonym);
+          } else if (relType == RelationType.antonym) {
+            createSymmetricRelation(newWord, relatedWord, RelationType.antonym);
+          } else if (relType == RelationType.translation) {
+            createSymmetricRelation(
+              newWord,
+              relatedWord,
+              RelationType.translation
+            );
+          }
+        }
+      } else if (newRelationType == RelationType.antonym) {
+        // Pour A antonym E, on propage :
+        // - A synonym B  -> E antonym B
+        // - A antonym C  -> E synonym C
+        for (WordRelation rel : aRelations) {
+          RelationType relType = rel.getType();
+          Word relatedWord = rel.getWordTarget();
+          if (relType == RelationType.synonym) {
+            createSymmetricRelation(newWord, relatedWord, RelationType.antonym);
+          } else if (relType == RelationType.antonym) {
+            createSymmetricRelation(newWord, relatedWord, RelationType.synonym);
+          }
+        }
+      } else if (newRelationType == RelationType.translation) {
+        // Pour A translation E, on propage pour chaque traduction D de A :
+        // Si D.language == E.language, alors D et E sont synonymes,
+        // sinon, D et E sont en translation.
+        for (WordRelation rel : aRelations) {
+          if (rel.getType() == RelationType.translation) {
+            Word relatedWord = rel.getWordTarget();
+            if (
+              relatedWord.getLanguage().equalsIgnoreCase(newWord.getLanguage())
+            ) {
+              createSymmetricRelation(
+                newWord,
+                relatedWord,
+                RelationType.synonym
+              );
+            } else {
+              createSymmetricRelation(
+                newWord,
+                relatedWord,
+                RelationType.translation
+              );
+            }
+          }
+        }
+      }
+    }
 
     return ResponseEntity
       .ok()
@@ -254,5 +284,50 @@ public class DatabaseService {
       );
     }
     return themes;
+  }
+
+  /**
+   * Crée une relation entre deux mots et sa relation symétrique.
+   *
+   * @param wordA Le premier mot
+   * @param wordB Le second mot
+   * @param type Le type de relation
+   */
+  private void createSymmetricRelation(
+    Word wordA,
+    Word wordB,
+    RelationType type
+  ) {
+    WordRelation relationAB = WordRelation
+      .builder()
+      .wordSource(wordA)
+      .wordTarget(wordB)
+      .type(type)
+      .build();
+    WordRelation relationBA = WordRelation
+      .builder()
+      .wordSource(wordB)
+      .wordTarget(wordA)
+      .type(type)
+      .build();
+    wordRelationRepository.save(relationAB);
+    wordRelationRepository.save(relationBA);
+  }
+
+  /**
+   * Crée et sauvegarde un mot à partir d'une entrée, en lui associant ses thèmes.
+   *
+   * @param entry l'entrée contenant le mot, la langue et la liste d'ID des thèmes.
+   * @return le mot sauvegardé.
+   */
+  private Word createAndSaveWord(DatabaseRequest.WordEntry entry) {
+    Set<Theme> themes = getThemesByIds(entry.getThemeId());
+    Word word = Word
+      .builder()
+      .word(entry.getWord())
+      .language(entry.getLanguage())
+      .build();
+    word.setThemes(themes);
+    return wordRepository.save(word);
   }
 }

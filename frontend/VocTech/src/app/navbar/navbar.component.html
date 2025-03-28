@@ -5,17 +5,19 @@
   </button>
 
   <!-- Burger Menu Button - Only visible on mobile view -->
-  <button mat-icon-button (click)="toggleMenu()"
-          *ngIf="!(isHomePage()) && isMobileView()"
-          [attr.aria-label]="(languageService.language$ | async) === 'fr' ? 'Menu' : 'Menu'">
+  <button mat-icon-button (click)="toggleMenu()" *ngIf="!(isHomePage()) && isMobileView()"
+    [attr.aria-label]="(languageService.language$ | async) === 'fr' ? 'Menu' : 'Menu'">
     <mat-icon>menu</mat-icon>
   </button>
 
   <!-- Navigation Links - Hidden on mobile, shown on desktop -->
   <nav *ngIf="!(isHomePage()) && !isMobileView()">
-    <a mat-button routerLink="/theme">{{ (languageService.language$ | async) === 'fr' ? labels.fr.theme : labels.en.theme }}</a>
-    <a mat-button routerLink="/mot">{{ (languageService.language$ | async) === 'fr' ? labels.fr.word : labels.en.word }}</a>
-    <a mat-button routerLink="/database">{{ (languageService.language$ | async) === 'fr' ? labels.fr.database : labels.en.database }}</a>
+    <a mat-button routerLink="/search">{{ (languageService.language$ | async) === 'fr' ? labels.fr.word : labels.en.word
+      }}</a>
+    <a mat-button routerLink="/themes">{{ (languageService.language$ | async) === 'fr' ? labels.fr.theme :
+      labels.en.theme }}</a>
+    <a mat-button routerLink="/database">{{ (languageService.language$ | async) === 'fr' ? labels.fr.database :
+      labels.en.database }}</a>
   </nav>
 
   <span class="spacer"></span>

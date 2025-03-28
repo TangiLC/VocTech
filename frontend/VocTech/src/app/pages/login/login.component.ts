@@ -98,7 +98,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.router.navigate(['/theme']);
+          this.router.navigate(['/themes']);
         },
         error: () => {
           this.errorMessage =

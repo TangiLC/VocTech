@@ -29,14 +29,17 @@ public class WordRelation {
 
   @ManyToOne
   @JoinColumn(name = "word_source_id", nullable = false)
+  @EqualsAndHashCode.Include
   private Word wordSource;
 
   @ManyToOne
   @JoinColumn(name = "word_target_id", nullable = false)
+  @EqualsAndHashCode.Include
   private Word wordTarget;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
+  @EqualsAndHashCode.Include
   private RelationType type;
 
   public enum RelationType {
