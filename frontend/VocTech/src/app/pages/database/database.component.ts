@@ -1,11 +1,155 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { Observable } from 'rxjs';
+import { ThemeService } from '../../services/theme.service';
+import { Theme } from '../../dto/theme.dto';
+import { DatabaseService } from '../../services/database.service';
 
 @Component({
   selector: 'app-database',
-  imports: [],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatRadioModule,
+    MatButtonModule,
+    MatSnackBarModule,
+  ],
   templateUrl: './database.component.html',
-  styleUrl: './database.component.scss'
+  styleUrls: ['./database.component.scss'],
 })
-export class DatabaseComponent {
+export class AppDatabaseComponent {
+  form: FormGroup;
+  themes$: Observable<Theme[]>;
+  languages = [
+    { value: 'fr', viewValue: 'Français' },
+    { value: 'en', viewValue: 'Anglais' },
+  ];
+  relations = [
+    { value: 'translation', viewValue: 'Traduction' },
+    { value: 'synonym', viewValue: 'Synonyme' },
+    { value: 'antonym', viewValue: 'Antonyme' },
+  ];
 
+  constructor(
+    private fb: FormBuilder,
+    private databaseService: DatabaseService,
+    private themeService: ThemeService,
+    private snackBar: MatSnackBar
+  ) {
+    this.themes$ = this.themeService.themes$;
+    this.form = this.fb.group({
+      word1: ['', Validators.required],
+      language1: ['fr', Validators.required],
+      themeIds1: [[], Validators.required],
+      word2: ['', Validators.required],
+      language2: ['en', Validators.required],
+      themeIds2: [[], Validators.required],
+      relation: ['translation', Validators.required],
+    });
+  }
+
+  onSubmit() {
+    if (this.form.invalid) return;
+
+    const {
+      word1,
+      language1,
+      themeIds1,
+      word2,
+      language2,
+      themeIds2,
+      relation,
+    } = this.form.value;
+    const entries = [
+      { word: word1, language: language1, themeId: themeIds1 },
+      { word: word2, language: language2, themeId: themeIds2 },
+    ];
+
+    if (relation === 'translation' || relation === 'antonym') {
+      this.databaseService.addPair(entries, relation).subscribe({
+        next: () => {
+          this.resetForm();
+          this.openSnackBar('Enregistrement effectué avec succès');
+        },
+        error: (err) => {
+          console.error(`[${relation}]`, err);
+          this.openSnackBar(
+            `Erreur lors de l'enregistrement: ${err.message}`,
+            true
+          );
+        },
+      });
+    } else if (relation === 'synonym') {
+      this.databaseService.searchWord(word1).subscribe({
+        next: (results) => {
+          if (!results.length) {
+            this.openSnackBar('Mot 1 non trouvé', true);
+            return;
+          }
+          const id1 = results[0].id;
+          this.databaseService
+            .addSynonym(id1, {
+              word: word2,
+              language: language2,
+              themeId: themeIds2,
+            })
+            .subscribe({
+              next: () => {
+                this.resetForm();
+                this.openSnackBar('Synonyme ajouté avec succès');
+              },
+              error: (err) => {
+                console.error('[synonym]', err);
+                this.openSnackBar(
+                  `Erreur lors de l'ajout du synonyme: ${err.message}`,
+                  true
+                );
+              },
+            });
+        },
+        error: (err) => {
+          console.error('[search word1]', err);
+          this.openSnackBar(
+            `Erreur lors de la recherche du mot: ${err.message}`,
+            true
+          );
+        },
+      });
+    }
+  }
+
+  private openSnackBar(message: string, isError: boolean = false) {
+    this.snackBar.open(message, 'OK', {
+      duration: isError ? 5000 : 3000,
+      panelClass: isError ? ['error-snackbar'] : ['success-snackbar'],
+    });
+  }
+
+  private resetForm() {
+    this.form.reset({
+      word1: '',
+      language1: 'fr',
+      themeIds1: [],
+      word2: '',
+      language2: 'en',
+      themeIds2: [],
+      relation: 'translation',
+    });
+  }
 }

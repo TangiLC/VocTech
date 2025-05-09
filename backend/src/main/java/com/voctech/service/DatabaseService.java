@@ -298,20 +298,40 @@ public class DatabaseService {
     Word wordB,
     RelationType type
   ) {
-    WordRelation relationAB = WordRelation
-      .builder()
-      .wordSource(wordA)
-      .wordTarget(wordB)
-      .type(type)
-      .build();
-    WordRelation relationBA = WordRelation
-      .builder()
-      .wordSource(wordB)
-      .wordTarget(wordA)
-      .type(type)
-      .build();
-    wordRelationRepository.save(relationAB);
-    wordRelationRepository.save(relationBA);
+    if (wordA.getId().equals(wordB.getId())) {
+        return;
+    }
+    if (
+      !wordRelationRepository.existsByWordSourceAndWordTargetAndType(
+        wordA,
+        wordB,
+        type
+      )
+    ) {
+      WordRelation relAB = WordRelation
+        .builder()
+        .wordSource(wordA)
+        .wordTarget(wordB)
+        .type(type)
+        .build();
+      wordRelationRepository.save(relAB);
+    }
+    // Relation B→A
+    if (
+      !wordRelationRepository.existsByWordSourceAndWordTargetAndType(
+        wordB,
+        wordA,
+        type
+      )
+    ) {
+      WordRelation relBA = WordRelation
+        .builder()
+        .wordSource(wordB)
+        .wordTarget(wordA)
+        .type(type)
+        .build();
+      wordRelationRepository.save(relBA);
+    }
   }
 
   /**

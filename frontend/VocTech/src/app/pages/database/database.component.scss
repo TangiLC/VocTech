@@ -1,0 +1,9 @@
+::ng-deep .success-snackbar {
+  background-color: #4caf50; /* vert Material */
+  color: #fff;
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336; /* rouge Material */
+  color: #fff;
+}

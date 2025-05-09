@@ -32,7 +32,7 @@ public class Word {
   )
   private Set<Theme> themes;
 
-  @OneToMany(mappedBy = "wordSource")
+  @OneToMany(mappedBy = "wordSource", fetch = FetchType.EAGER)
   private Set<WordRelation> sourceRelations;
   
   @OneToMany(mappedBy = "wordTarget")

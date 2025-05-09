@@ -1,1 +1,71 @@
-<p>database works!</p>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="database-form">
+  <!-- Mot 1 -->
+  <div class="word-card">
+    <mat-form-field appearance="fill">
+      <mat-label>Mot 1</mat-label>
+      <input matInput placeholder="Entrez le premier mot" formControlName="word1">
+    </mat-form-field>
+
+    <!-- Langue Mot 1 -->
+    <mat-form-field appearance="fill">
+      <mat-label>Langue Mot 1</mat-label>
+      <mat-select formControlName="language1">
+        <mat-option *ngFor="let lang of languages" [value]="lang.value">
+          {{ lang.viewValue }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Thèmes Mot 1 -->
+    <mat-form-field appearance="fill">
+      <mat-label>Thèmes</mat-label>
+      <mat-select formControlName="themeIds1" multiple>
+        <mat-option *ngFor="let theme of themes$ | async" [value]="theme.id">
+          {{ theme.nameFr }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="word-card">
+    <!-- Mot 2 -->
+    <mat-form-field appearance="fill">
+      <mat-label>Mot 2</mat-label>
+      <input matInput placeholder="Entrez le deuxième mot" formControlName="word2">
+    </mat-form-field>
+
+    <!-- Langue Mot 2 -->
+    <mat-form-field appearance="fill">
+      <mat-label>Langue Mot 2</mat-label>
+      <mat-select formControlName="language2">
+        <mat-option *ngFor="let lang of languages" [value]="lang.value">
+          {{ lang.viewValue }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Thèmes Mot 2 -->
+    <mat-form-field appearance="fill">
+      <mat-label>Thèmes</mat-label>
+      <mat-select formControlName="themeIds2" multiple>
+        <mat-option *ngFor="let theme of themes$ | async" [value]="theme.id">
+          {{ theme.nameFr }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Relation -->
+  <div class="relation-group">
+    <label class="section-label">Relation</label>
+    <mat-radio-group formControlName="relation">
+      <mat-radio-button *ngFor="let rel of relations" [value]="rel.value">
+        {{ rel.viewValue }}
+      </mat-radio-button>
+    </mat-radio-group>
+  </div>
+
+  <!-- Submit -->
+  <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+    Envoyer
+  </button>
+</form>

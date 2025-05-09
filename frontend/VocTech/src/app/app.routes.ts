@@ -30,7 +30,7 @@ export const routes: Routes = [
     path: 'database',
     loadComponent: () =>
       import('./pages/database/database.component').then(
-        (c) => c.DatabaseComponent
+        (c) => c.AppDatabaseComponent
       ),
     canActivate: [
       () => inject(AuthGuard).canActivate(),

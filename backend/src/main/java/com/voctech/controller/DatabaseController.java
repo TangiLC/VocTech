@@ -46,7 +46,7 @@ public class DatabaseController {
       ),
     }
   )
-  @PreAuthorize("hasAuthority('ADMIN')")
+  //@PreAuthorize("hasAuthority('ADMIN')")
   @PostMapping("/addpair")
   public ResponseEntity<?> addWordsWithRelations(
     @RequestBody DatabaseRequest request
@@ -73,7 +73,7 @@ public class DatabaseController {
       ),
     }
   )
-  @PreAuthorize("hasAuthority('ADMIN')")
+  //@PreAuthorize("hasAuthority('ADMIN')")
   @PatchMapping("/addword")
   public ResponseEntity<?> addNewRelation(
     @RequestBody NewRelationRequest request
@@ -109,7 +109,7 @@ public class DatabaseController {
       ),
     }
   )
-  @PreAuthorize("hasAuthority('ADMIN')")
+  //@PreAuthorize("hasAuthority('ADMIN')")
   @PatchMapping("/addrelation")
   public ResponseEntity<?> addExistingRelation(
     @RequestBody ExistingRelationRequest request

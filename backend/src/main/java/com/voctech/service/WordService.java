@@ -54,6 +54,7 @@ public class WordService {
   private WordResponse mapWordToResponse(Word w) {
     Set<Long> visitedWordIds = new HashSet<>();
     visitedWordIds.add(w.getId());
+    System.out.println(">>> visited list size: " + visitedWordIds.size());
     return mapWordToResponseWithVisited(w, visitedWordIds);
   }
 
@@ -75,21 +76,33 @@ public class WordService {
     relations.put("synonym", new ArrayList<>());
     relations.put("antonym", new ArrayList<>());
 
-    // Remplir les relations (niveau 1 uniquement, sans récursion)
+    // Remplir les relations (traiter toutes les relations)
+    List<WordRelation> sourceRelations = new ArrayList<>();
     if (w.getSourceRelations() != null) {
-      for (WordRelation relation : w.getSourceRelations()) {
-        Word targetWord = relation.getWordTarget();
-        if (targetWord != null) {
-          RelatedWordResponse relatedWord = new RelatedWordResponse(
-            targetWord.getId(),
-            targetWord.getWord(),
-            targetWord.getLanguage()
-          );
-          String relationType = relation.getType().name().toLowerCase();
-          // Ajouter le mot cible si le type de relation est reconnu
-          if (relations.containsKey(relationType)) {
-            relations.get(relationType).add(relatedWord);
-          }
+      sourceRelations.addAll(w.getSourceRelations());
+      System.out.println(">>> Temp list size: " + sourceRelations.size());
+    }
+
+    // Traiter toutes les relations sources une par une
+    for (WordRelation relation : sourceRelations) {
+      Word targetWord = relation.getWordTarget();
+      if (targetWord != null) {
+        System.out.println(
+          "####>>> Target word: " +
+          targetWord.getWord() +
+          " (ID: " +
+          targetWord.getId() +
+          ")"
+        );
+        RelatedWordResponse relatedWord = new RelatedWordResponse(
+          targetWord.getId(),
+          targetWord.getWord(),
+          targetWord.getLanguage()
+        );
+        String relationType = relation.getType().name().toLowerCase();
+        // Ajouter le mot cible si le type de relation est reconnu
+        if (relations.containsKey(relationType)) {
+          relations.get(relationType).add(relatedWord);
         }
       }
     }

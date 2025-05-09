@@ -1,23 +1,15 @@
+// theme.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Theme } from '../../dto/theme.dto';
 import { ThemeService } from '../../services/theme.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeCardComponent } from '../../shared/theme-card/theme-card.component';
 
-interface AppState {
-  themes: Theme[];
-}
-
 @Component({
   selector: 'app-theme',
   standalone: true,
-  imports: [
-    CommonModule,
-    ThemeCardComponent
-  ],
+  imports: [ CommonModule, ThemeCardComponent ],
   templateUrl: './theme.component.html',
   styleUrls: ['./theme.component.scss'],
 })
@@ -25,7 +17,8 @@ export class ThemeComponent implements OnInit {
   private themeService = inject(ThemeService);
   private languageService = inject(LanguageService);
 
-  themes$ = new BehaviorSubject<Theme[]>([]);
+  // direct usage du subject du service
+  themes$ = this.themeService.themes$;
   currentLanguage: 'en' | 'fr';
 
   constructor() {
@@ -33,11 +26,9 @@ export class ThemeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.themeService.fetchThemes().subscribe((themes) => {
-      this.themes$.next(themes);
+    this.languageService.language$.subscribe(lang => {
+      this.currentLanguage = lang;
+      this.themeService.refresh();
     });
-    this.languageService.language$.subscribe(
-      (lang) => (this.currentLanguage = lang)
-    );
   }
 }
