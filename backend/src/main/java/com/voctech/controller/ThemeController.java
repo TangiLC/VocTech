@@ -58,7 +58,7 @@ public class ThemeController {
       )
     }
   )
-  @PreAuthorize("hasAuthority('USER')")
+  //@PreAuthorize("hasAuthority('USER')")
   @GetMapping("/themes")
   public ResponseEntity<List<ThemeResponse>> getAllThemes() {
     List<ThemeResponse> themes = themeService.getAllThemes();

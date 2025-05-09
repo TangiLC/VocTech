@@ -69,7 +69,7 @@ public class DatabaseService {
     Word word2 = createAndSaveWord(wordEntriesList.get(1));
 
     RelationType relationType = RelationType.valueOf(
-      request.getRelation().toUpperCase()
+      request.getRelation().toLowerCase()
     );
 
     createSymmetricRelation(word1, word2, relationType);
@@ -127,7 +127,7 @@ public class DatabaseService {
     wordRepository.save(newWord);
 
     RelationType newRelationType = RelationType.valueOf(
-      request.getRelation().toUpperCase()
+      request.getRelation().toLowerCase()
     );
     Word existingSource = existingSourceWord.get();
 
@@ -246,7 +246,7 @@ public class DatabaseService {
       .builder()
       .wordSource(sourceWord.get())
       .wordTarget(targetWord.get())
-      .type(RelationType.valueOf(request.getRelation().toUpperCase()))
+      .type(RelationType.valueOf(request.getRelation().toLowerCase()))
       .build();
     wordRelationRepository.save(wordRelation);
 

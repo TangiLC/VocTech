@@ -34,6 +34,7 @@ import { LanguageService } from '../../services/language.service';
     MatListModule,
   ],
   templateUrl: './wordSearch-input.component.html',
+  styleUrls:['./wordSearch-input.component.scss']
 })
 export class WordSearchInputComponent implements OnInit, OnDestroy {
   @Input() themeId?: number;
@@ -47,14 +48,14 @@ export class WordSearchInputComponent implements OnInit, OnDestroy {
 
   labels = {
     en: {
-      label: 'Search a word',
+      label: 'Search a word (3 letters min)',
       placeholder: 'Type a word...',
       patternError:
         "Only alphanumeric characters, dashes (-), apostrophes (') and question marks (?) are allowed.",
       noResults: 'No result found.',
     },
     fr: {
-      label: 'Rechercher un mot',
+      label: 'Rechercher un mot (au moins 3 lettres)',
       placeholder: 'Tapez un mot...',
       patternError:
         "Seuls les caractères alphanumériques, tirets (-), apostrophes (') et points d’interrogation (?) sont autorisés.",

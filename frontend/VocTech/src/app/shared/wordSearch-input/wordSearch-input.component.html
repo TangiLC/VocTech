@@ -1,6 +1,7 @@
 <mat-form-field appearance="fill" class="full-width">
   <mat-label>{{ currentLabels.label }}</mat-label>
-  <input matInput [formControl]="searchControl" [placeholder]="currentLabels.placeholder" />
+  <input matInput [formControl]="searchControl" [placeholder]="currentLabels.placeholder"
+  [minLength]="3"/>
 
   <mat-error *ngIf="searchControl.hasError('pattern')">
     {{ currentLabels.patternError }}

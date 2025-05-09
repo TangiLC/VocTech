@@ -1,4 +1,6 @@
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z1 full-width-table">
+
+<table *ngIf="dataSource.length > 0"
+mat-table [dataSource]="dataSource" class="mat-elevation-z1 full-width-table">
 
   <!-- Mot -->
   <ng-container matColumnDef="word">

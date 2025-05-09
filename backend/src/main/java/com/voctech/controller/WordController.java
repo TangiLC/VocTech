@@ -59,7 +59,7 @@ public class WordController {
       ),
     }
   )
-  @PreAuthorize("hasAuthority('USER')") 
+  //@PreAuthorize("hasAuthority('USER','ADMIN')") 
   @GetMapping("/search")
   public ResponseEntity<List<WordResponse>> getWords(
     @RequestParam String word
