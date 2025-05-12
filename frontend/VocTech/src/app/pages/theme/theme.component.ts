@@ -17,7 +17,6 @@ export class ThemeComponent implements OnInit {
   private themeService = inject(ThemeService);
   private languageService = inject(LanguageService);
 
-  // direct usage du subject du service
   themes$ = this.themeService.themes$;
   currentLanguage: 'en' | 'fr';
 

@@ -32,17 +32,17 @@ export class AuthService {
   }
 
   saveAuthData(response: JwtResponse): void {
+    // Stocke le token JWT
     localStorage.setItem('token', response.token);
-    localStorage.setItem('roles', JSON.stringify(response.roles));
-    localStorage.setItem(
-      'user',
-      JSON.stringify({
-        id: response.id,
-        username: response.username,
-        email: response.email,
-        roles: response.roles,
-      })
-    );
+
+    // Stocke toutes les informations utilisateur (y compris les rôles) dans un seul endroit
+    const userData = {
+      id: response.id,
+      username: response.username,
+      email: response.email,
+      roles: response.roles,
+    };
+    localStorage.setItem('user', JSON.stringify(userData));
   }
 
   getCurrentUser(): User | null {
@@ -68,15 +68,19 @@ export class AuthService {
   }
 
   logout(): void {
+    // Supprime toutes les données d'authentification
     localStorage.removeItem('token');
-    localStorage.removeItem('roles');
     localStorage.removeItem('user');
     this.router.navigate(['/login']);
   }
 
   hasRole(role: string): boolean {
-    const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-    return roles.includes(role);
+    const user = this.getCurrentUser();
+    if (!user || !user.roles) {
+      return false;
+    }
+    console.log(user,user.roles.includes(role))
+    return user.roles.includes(role);
   }
 
   getToken(): string | null {

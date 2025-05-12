@@ -7,5 +7,5 @@
     <p>{{ content }}</p>
   </mat-card-content>
   <app-word-search-input [themeId]="id" (results)="results$ = $event"></app-word-search-input>
-  <app-word-table [data$]="results$"></app-word-table>
+  <app-word-table [data$]="results$" [isThemeShown]=false></app-word-table>
 </mat-card>

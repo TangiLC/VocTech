@@ -63,6 +63,9 @@ export class NavbarComponent implements OnInit {
       this.currentUrl() === '/login'
   );
 
+  // Ajout d'une propriété pour vérifier si l'utilisateur est admin
+  isAdmin = computed(() => this.authService.hasRole('ADMIN'));
+
   constructor(private authService: AuthService) {
     if (this.isBrowser) {
       this.checkScreenWidth();
@@ -98,7 +101,7 @@ export class NavbarComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/home']);
+    //this.router.navigate(['/home']);
     console.log('Déconnecté');
   }
 

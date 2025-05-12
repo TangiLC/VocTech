@@ -105,17 +105,15 @@ export class AppDatabaseComponent {
         },
         error: (err) => {
           console.error(`[${relation}]`, err);
-          this.openSnackBar(
-            `Erreur lors de l'enregistrement: ${err.message}`,
-            true
-          );
+          const errorMessage = err.error?.error || err.message || 'Unknown';
+          this.openSnackBar(`Erreur: ${errorMessage}`, true);
         },
       });
     } else if (relation === 'synonym') {
       this.databaseService.searchWord(word1).subscribe({
         next: (results) => {
           if (!results.length) {
-            this.openSnackBar('Mot 1 non trouvé', true);
+            this.openSnackBar(`Mot ${word1} non trouvé`, true);
             return;
           }
           const id1 = results[0].id;
@@ -132,19 +130,15 @@ export class AppDatabaseComponent {
               },
               error: (err) => {
                 console.error('[synonym]', err);
-                this.openSnackBar(
-                  `Erreur lors de l'ajout du synonyme: ${err.message}`,
-                  true
-                );
+                 const errorMessage = err.error?.error || err.message || 'Unknown';
+          this.openSnackBar(`Erreur Synonym: ${errorMessage}`, true);
               },
             });
         },
         error: (err) => {
           console.error('[search word1]', err);
-          this.openSnackBar(
-            `Erreur lors de la recherche du mot: ${err.message}`,
-            true
-          );
+           const errorMessage = err.error?.error || err.message || 'Unknown';
+          this.openSnackBar(`Erreur Word1: ${errorMessage}`, true);
         },
       });
     }
