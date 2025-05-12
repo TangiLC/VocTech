@@ -6,7 +6,6 @@ import com.voctech.model.WordRelation;
 import com.voctech.payload.RelatedWordResponse;
 import com.voctech.payload.UpdateWordRequest;
 import com.voctech.payload.WordResponse;
-import com.voctech.repository.ThemeRepository;
 import com.voctech.repository.WordRepository;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -25,18 +24,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class WordService {
 
   private final WordRepository wordRepository;
-  private final ThemeRepository themeRepository;
+  private final ThemeService themeService;
 
-  public WordService(
-    WordRepository wordRepository,
-    ThemeRepository themeRepository
-  ) {
+  public WordService(WordRepository wordRepository, ThemeService themeService) {
     this.wordRepository = wordRepository;
-    this.themeRepository = themeRepository;
+    this.themeService = themeService;
   }
 
   /**
-   * Recherche des mots contenant une séquence de lettres donnée, sans distinction de casse et d'accentuation.
+   * Recherche des mots contenant une séquence de lettres donnée,
+   * sans distinction de casse et d'accentuation.
    *
    * @param word Le mot recherché
    * @return Liste des mots correspondant au critère de recherche
@@ -50,61 +47,182 @@ public class WordService {
       .collect(Collectors.toList());
   }
 
-  // Méthode principale, qui initialise l'ensemble des mots déjà visités
   private WordResponse mapWordToResponse(Word w) {
     Set<Long> visitedWordIds = new HashSet<>();
-    visitedWordIds.add(w.getId());
-    System.out.println(">>> visited list size: " + visitedWordIds.size());
     return mapWordToResponseWithVisited(w, visitedWordIds);
   }
 
-  // Méthode récursive avec suivi des mots visités
   private WordResponse mapWordToResponseWithVisited(
     Word w,
     Set<Long> visitedWordIds
   ) {
-    // Récupérer les IDs des thèmes
+    visitedWordIds.add(w.getId());
+
     List<Integer> themeIds = w
       .getThemes()
       .stream()
       .map(Theme::getId)
       .collect(Collectors.toList());
 
-    // Créer la structure des relations
     Map<String, List<RelatedWordResponse>> relations = new HashMap<>();
     relations.put("translation", new ArrayList<>());
     relations.put("synonym", new ArrayList<>());
     relations.put("antonym", new ArrayList<>());
 
-    // Remplir les relations (traiter toutes les relations)
-    List<WordRelation> sourceRelations = new ArrayList<>();
     if (w.getSourceRelations() != null) {
-      sourceRelations.addAll(w.getSourceRelations());
-      System.out.println(">>> Temp list size: " + sourceRelations.size());
-    }
+      for (WordRelation relation : w.getSourceRelations()) {
+        Word targetWord = relation.getWordTarget();
+        if (targetWord != null) {
+          String relationType = relation.getType().name().toLowerCase();
 
-    // Traiter toutes les relations sources une par une
-    for (WordRelation relation : sourceRelations) {
-      Word targetWord = relation.getWordTarget();
-      if (targetWord != null) {
-        System.out.println(
-          "####>>> Target word: " +
-          targetWord.getWord() +
-          " (ID: " +
-          targetWord.getId() +
-          ")"
-        );
-        RelatedWordResponse relatedWord = new RelatedWordResponse(
-          targetWord.getId(),
-          targetWord.getWord(),
-          targetWord.getLanguage()
-        );
-        String relationType = relation.getType().name().toLowerCase();
-        // Ajouter le mot cible si le type de relation est reconnu
-        if (relations.containsKey(relationType)) {
-          relations.get(relationType).add(relatedWord);
+          if (
+            "translation".equals(relationType) || "synonym".equals(relationType)
+          ) {
+            if (!w.getLanguage().equals(targetWord.getLanguage())) {
+              relationType = "translation";
+            } else { // V2 : antonym ?
+              relationType = "synonym";
+            }
+          }
+
+          if (relations.containsKey(relationType)) {
+            relations
+              .get(relationType)
+              .add(
+                new RelatedWordResponse(
+                  targetWord.getId(),
+                  targetWord.getWord(),
+                  targetWord.getLanguage()
+                )
+              );
+
+            // Récursivité pour les mots non visités
+            if (!visitedWordIds.contains(targetWord.getId())) {
+              Set<Long> newVisitedIds = new HashSet<>(visitedWordIds);
+              WordResponse targetResponse = mapWordToResponseWithVisited(
+                targetWord,
+                newVisitedIds
+              );
+
+              if ("translation".equals(relationType)) {
+                for (RelatedWordResponse transOfTrans : targetResponse
+                  .getRelations()
+                  .get("translation")) {
+                  if (!transOfTrans.getLanguage().equals(w.getLanguage())) {
+                    relations.get("translation").add(transOfTrans);
+                  }
+                }
+
+                for (RelatedWordResponse synOfTrans : targetResponse
+                  .getRelations()
+                  .get("synonym")) {
+                  if (!synOfTrans.getLanguage().equals(w.getLanguage())) {
+                    relations.get("translation").add(synOfTrans);
+                  } else {
+                    relations.get("synonym").add(synOfTrans);
+                  }
+                }
+              }
+
+              if ("synonym".equals(relationType)) {
+                relations
+                  .get("synonym")
+                  .addAll(targetResponse.getRelations().get("synonym"));
+
+                relations
+                  .get("translation")
+                  .addAll(targetResponse.getRelations().get("translation"));
+              }
+            }
+          }
         }
       }
+    }
+
+    if (w.getTargetRelations() != null) {
+      for (WordRelation relation : w.getTargetRelations()) {
+        Word sourceWord = relation.getWordSource();
+        if (sourceWord != null) {
+          String relationType = relation.getType().name().toLowerCase();
+
+          if (
+            "translation".equals(relationType) || "synonym".equals(relationType)
+          ) {
+            if (!w.getLanguage().equals(sourceWord.getLanguage())) {
+              relationType = "translation";
+            } else {
+              relationType = "synonym";
+            }
+          }
+
+          if (relations.containsKey(relationType)) {
+            relations
+              .get(relationType)
+              .add(
+                new RelatedWordResponse(
+                  sourceWord.getId(),
+                  sourceWord.getWord(),
+                  sourceWord.getLanguage()
+                )
+              );
+
+            if (!visitedWordIds.contains(sourceWord.getId())) {
+              Set<Long> newVisitedIds = new HashSet<>(visitedWordIds);
+              WordResponse sourceResponse = mapWordToResponseWithVisited(
+                sourceWord,
+                newVisitedIds
+              );
+
+              if ("translation".equals(relationType)) {
+                for (RelatedWordResponse transOfTrans : sourceResponse
+                  .getRelations()
+                  .get("translation")) {
+                  if (!transOfTrans.getLanguage().equals(w.getLanguage())) {
+                    relations.get("translation").add(transOfTrans);
+                  }
+                }
+
+                for (RelatedWordResponse synOfTrans : sourceResponse
+                  .getRelations()
+                  .get("synonym")) {
+                  if (!synOfTrans.getLanguage().equals(w.getLanguage())) {
+                    relations.get("translation").add(synOfTrans);
+                  } else {
+                    relations.get("synonym").add(synOfTrans);
+                  }
+                }
+              }
+
+              if ("synonym".equals(relationType)) {
+                relations
+                  .get("synonym")
+                  .addAll(sourceResponse.getRelations().get("synonym"));
+
+                relations
+                  .get("translation")
+                  .addAll(sourceResponse.getRelations().get("translation"));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Éliminer les doublons dans chaque liste de relations
+    for (String key : relations.keySet()) {
+      List<RelatedWordResponse> uniqueList = new ArrayList<>();
+      Set<Long> addedIds = new HashSet<>();
+
+      for (RelatedWordResponse resp : relations.get(key)) {
+        if (
+          !addedIds.contains(resp.getId()) && !resp.getId().equals(w.getId())
+        ) {
+          uniqueList.add(resp);
+          addedIds.add(resp.getId());
+        }
+      }
+
+      relations.put(key, uniqueList);
     }
 
     return new WordResponse(
@@ -114,6 +232,19 @@ public class WordService {
       themeIds,
       relations
     );
+  }
+
+  /**
+   * Récupère tous les mots dans la base de données.
+   *
+   * @return Liste de tous les mots, sous forme de WordResponse
+   */
+  public List<WordResponse> getAllWords() {
+    return wordRepository
+      .findAll()
+      .stream()
+      .map(this::mapWordToResponse)
+      .collect(Collectors.toList());
   }
 
   /**
@@ -144,7 +275,9 @@ public class WordService {
     }
 
     if (request.getThemeId() != null && !request.getThemeId().isEmpty()) {
-      Set<Theme> updatedThemes = getThemesByIds(request.getThemeId());
+      Set<Theme> updatedThemes = themeService.getThemesByIds(
+        request.getThemeId()
+      );
       existingWord.setThemes(updatedThemes);
     }
 
@@ -182,20 +315,5 @@ public class WordService {
       .normalize(input, Normalizer.Form.NFD)
       .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
       .toLowerCase();
-  }
-
-  /**
-   * Récupère un ensemble de thèmes à partir d'une liste d'ID.
-   *
-   * @param themeIds Liste des ID des thèmes
-   * @return Un ensemble d'objets Theme correspondant aux ID fournis
-   */
-  private Set<Theme> getThemesByIds(List<Integer> themeIds) {
-    Set<Theme> themes = new HashSet<>();
-    if (themeIds != null) {
-      themeIds.forEach(id -> themeRepository.findById(id).ifPresent(themes::add)
-      );
-    }
-    return themes;
   }
 }

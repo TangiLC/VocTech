@@ -9,7 +9,7 @@ import { WordResponse } from '../dto/wordResponse.dto';
   providedIn: 'root',
 })
 export class WordSearchService {
-  private apiUrl = '/voctech/search';
+  private apiUrl = '/voctech/';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -17,7 +17,7 @@ export class WordSearchService {
     const token = this.authService.getToken();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http
-      .get<WordResponse[]>(`${this.apiUrl}?word=${encodeURIComponent(query)}`, {
+      .get<WordResponse[]>(`${this.apiUrl}search/?word=${encodeURIComponent(query)}`, {
         headers,
       })
       .pipe(
@@ -25,5 +25,14 @@ export class WordSearchService {
           console.log('Réponse API:', response);
         })
       );
+  }
+
+
+  getAllWords(): Observable<WordResponse[]> {
+    const token   = this.authService.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http
+      .get<WordResponse[]>(`${this.apiUrl}/words`, { headers })
+      .pipe(tap(response => console.log('Réponse API (all words):', response)));
   }
 }

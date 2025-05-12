@@ -1,3 +1,5 @@
+<mat-card class="mb-4">
+
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="database-form">
   <!-- Mot 1 -->
   <div class="word-card">
@@ -69,3 +71,8 @@
     Envoyer
   </button>
 </form>
+</mat-card>
+
+<mat-card>
+  <app-word-table [data$]="words$"></app-word-table>
+</mat-card>

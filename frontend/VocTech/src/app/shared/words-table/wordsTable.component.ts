@@ -1,9 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
+import { ThemeService } from '../../services/theme.service';
+import { LanguageService } from '../../services/language.service';
 import { WordResponse } from './../../dto/wordResponse.dto';
-import { RelatedWordResponse } from './../../dto/wordResponse.dto';
+import bgColors from '../theme-card/theme-colors.json';
 import { Observable } from 'rxjs';
+import { Theme } from '../../dto/theme.dto';
 
 @Component({
   selector: 'app-word-table',
@@ -14,9 +17,20 @@ import { Observable } from 'rxjs';
 })
 export class WordsTableComponent implements OnInit {
   @Input() data$!: Observable<WordResponse[]>;
+  themes: Theme[] = [];
+  currentLanguage: 'fr' | 'en';
+
+  constructor(
+    private themeService: ThemeService,
+    private languageService: LanguageService
+  ) {
+    this.currentLanguage = this.languageService.getCurrentLanguage();
+  }
+
   displayedColumns: string[] = [
     'word',
     'language',
+    'theme',
     'synonyms',
     'translations',
     'translationLanguages',
@@ -24,6 +38,10 @@ export class WordsTableComponent implements OnInit {
   dataSource: WordResponse[] = [];
 
   ngOnInit() {
+    this.themeService.themes$.subscribe((themes) => (this.themes = themes));
+    this.languageService.language$.subscribe(
+      (lang) => (this.currentLanguage = lang)
+    );
     this.data$.subscribe((data) => {
       console.log('Received data:', data);
       this.dataSource = data;
@@ -60,5 +78,21 @@ export class WordsTableComponent implements OnInit {
     //console.log('Translation languages:', langs);
 
     return langs.size ? Array.from(langs).join(', ') : '-';
+  }
+
+  getThemeName(themeId: number): string {
+    if (!this.themes || this.themes.length === 0) {
+      return '';
+    }
+    const theme = this.themes.find((t) => t.id == themeId);
+    //console.log('THEMES', this.themes);
+    if (!theme) return themeId.toString();
+    let themeName=this.currentLanguage === 'fr' ? theme.nameFr : theme.nameEn;
+    return themeName.slice(0,4)}
+
+
+  getThemeColor(themeId: number): string {
+    const rgb = bgColors.theme[themeId];
+    return rgb ? `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)` : 'transparent';
   }
 }

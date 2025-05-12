@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,26 @@ public class WordController {
     return ResponseEntity.ok(words);
   }
 
+
+  /**
+   * Récupère tous les mots du dictionnaire.
+   *
+   * @return Liste de tous les mots (WordResponse)
+   */
+  @Operation(
+    summary = "Récupère tous les mots",
+    description = "Renvoie la liste complète des mots du dictionnaire avec leurs relations (traductions, synonymes, etc.)"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Liste des mots récupérée avec succès"),
+    @ApiResponse(responseCode = "401", description = "Non autorisé — authentification requise"),
+    @ApiResponse(responseCode = "500", description = "Erreur interne du serveur")
+  })
+  @GetMapping("/words")
+  public ResponseEntity<List<WordResponse>> getAllWords() {
+    List<WordResponse> words = wordService.getAllWords();
+    return ResponseEntity.ok(words);
+  }
 
 
   /**

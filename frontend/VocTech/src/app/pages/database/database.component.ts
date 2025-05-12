@@ -9,6 +9,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -16,6 +17,9 @@ import { Observable } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { Theme } from '../../dto/theme.dto';
 import { DatabaseService } from '../../services/database.service';
+import { WordSearchService } from '../../services/wordSearch.service';
+import { WordsTableComponent } from '../../shared/words-table/wordsTable.component';
+import { WordResponse } from '../../dto/wordResponse.dto';
 
 @Component({
   selector: 'app-database',
@@ -24,18 +28,21 @@ import { DatabaseService } from '../../services/database.service';
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
+    MatCardModule,
     MatInputModule,
     MatSelectModule,
     MatRadioModule,
     MatButtonModule,
     MatSnackBarModule,
+    WordsTableComponent,
   ],
   templateUrl: './database.component.html',
   styleUrls: ['./database.component.scss'],
 })
 export class AppDatabaseComponent {
-  form: FormGroup;
-  themes$: Observable<Theme[]>;
+  form!: FormGroup;
+  themes$!: Observable<Theme[]>;
+  words$!: Observable<WordResponse[]>;
   languages = [
     { value: 'fr', viewValue: 'Français' },
     { value: 'en', viewValue: 'Anglais' },
@@ -43,16 +50,25 @@ export class AppDatabaseComponent {
   relations = [
     { value: 'translation', viewValue: 'Traduction' },
     { value: 'synonym', viewValue: 'Synonyme' },
-    { value: 'antonym', viewValue: 'Antonyme' },
+    //{ value: 'antonym', viewValue: 'Antonyme' },
   ];
 
   constructor(
     private fb: FormBuilder,
     private databaseService: DatabaseService,
+    private wordSearchService: WordSearchService,
     private themeService: ThemeService,
     private snackBar: MatSnackBar
   ) {
     this.themes$ = this.themeService.themes$;
+  }
+
+  ngOnInit(): void {
+    this.words$ = this.wordSearchService.getAllWords();
+    this.buildForm();
+  }
+
+  private buildForm() {
     this.form = this.fb.group({
       word1: ['', Validators.required],
       language1: ['fr', Validators.required],
