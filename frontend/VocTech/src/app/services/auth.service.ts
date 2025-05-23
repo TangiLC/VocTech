@@ -1,89 +1,118 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
-import { JwtResponse } from '../dto/auth.dto';
-import { User } from '../dto/user.dto';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root',
-})
+export interface User {
+  id: number;
+  username: string;
+  role: string;
+}
+
+export interface JwtResponse {
+  token: string;
+  id: number;
+  username: string;
+  role: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8082/auth';
+  private readonly apiUrl = 'http://localhost:8082/auth';
 
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  // Subjects maintenus en mémoire et initialisés depuis le localStorage
+  private tokenSubject = new BehaviorSubject<string | null>(
+    localStorage.getItem('token')
+  );
+  public token$ = this.tokenSubject.asObservable();
 
+  private userSubject = new BehaviorSubject<User | null>(
+    JSON.parse(localStorage.getItem('user') || 'null')
+  );
+  public user$ = this.userSubject.asObservable();
+
+  constructor(private http: HttpClient, private router: Router) {}
+
+  /**
+   * Envoi des identifiants, stockage du token et de l'utilisateur
+   */
   login(username: string, password: string): Observable<JwtResponse> {
     return this.http
-      .post<JwtResponse>(`${this.apiUrl}/login`, {
-        username,
-        password,
-      })
+      .post<JwtResponse>(`${this.apiUrl}/login`, { username, password })
       .pipe(
-        tap((response) => {
-          this.saveAuthData(response);
+        tap((resp) => {
+          // Stockage dans le localStorage
+          localStorage.setItem('token', resp.token);
+
+          this.tokenSubject.next(resp.token);
+
+          // Construction de l'objet User et stockage
+          const usr: User = {
+            id: resp.id,
+            username: resp.username,
+            role: resp.role,
+          };
+          this.userSubject.next(usr);
+
+          const { role, ...usrForStorage } = usr;
+          localStorage.setItem('user', JSON.stringify(usrForStorage));
+          this.userSubject.next(usr);
         })
       );
   }
 
-  register(user: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, user);
-  }
-
-  saveAuthData(response: JwtResponse): void {
-    // Stocke le token JWT
-    localStorage.setItem('token', response.token);
-
-    // Stocke toutes les informations utilisateur (y compris les rôles) dans un seul endroit
-    const userData = {
-      id: response.id,
-      username: response.username,
-      email: response.email,
-      roles: response.roles,
-    };
-    localStorage.setItem('user', JSON.stringify(userData));
-  }
-
-  getCurrentUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(userStr) as User;
-    } catch (e) {
-      console.error('Error parsing user data', e);
-      return null;
-    }
-  }
-
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
-  }
-
-  isAdmin(): boolean {
-    return this.hasRole('ADMIN');
-  }
-
+  /**
+   * Déconnexion : nettoyage et redirection
+   */
   logout(): void {
-    // Supprime toutes les données d'authentification
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    this.tokenSubject.next(null);
+    this.userSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    if (!user || !user.roles) {
-      return false;
-    }
-    console.log(user,user.roles.includes(role))
-    return user.roles.includes(role);
+  /**
+   * Indique si un token valide est présent
+   */
+  isAuthenticated$(): Observable<boolean> {
+    return this.token$.pipe(
+      map((token) => {
+        if (!token) {
+          return false;
+        }
+        const payload = this.decodeJwtPayload(token);
+        return !!payload && payload.exp! * 1000 > Date.now();
+      })
+    );
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
+  /**
+   * Expose l'utilisateur courant
+   */
+  currentUser$(): Observable<User | null> {
+    return this.user$;
+  }
+
+  /**
+   * Vérifie si l'utilisateur a un rôle donné
+   */
+  hasRole$(role: string): Observable<boolean> {
+    return this.user$.pipe(map((user) => !!user && user.role === role));
+  }
+
+  /**
+   * Décodage du payload JWT (base64)
+   */
+  private decodeJwtPayload(token: string): any {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decoded = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error('Erreur décodage JWT', error);
+      return null;
+    }
   }
 }

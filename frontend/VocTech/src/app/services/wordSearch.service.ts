@@ -14,7 +14,7 @@ export class WordSearchService {
   constructor(private http: HttpClient, private authService: AuthService) {}
 
   searchWords(query: string): Observable<WordResponse[]> {
-    const token = this.authService.getToken();
+    const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http
       .get<WordResponse[]>(`${this.apiUrl}/search?word=${encodeURIComponent(query)}`, {
@@ -29,7 +29,7 @@ export class WordSearchService {
 
 
   getAllWords(): Observable<WordResponse[]> {
-    const token   = this.authService.getToken();
+    const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http
       .get<WordResponse[]>(`${this.apiUrl}/words`, { headers })

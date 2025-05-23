@@ -1,0 +1,66 @@
+# Stage 1: Build de l'application avec Maven
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /app
+
+# Installation de Maven
+RUN apk add --no-cache maven
+
+# Copie du fichier POM et téléchargement des dépendances
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copie du code source
+COPY src ./src
+
+# Compilation et packaging de l'application
+RUN mvn package -DskipTests
+RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+
+# Stage 2: Image d'exécution optimisée
+FROM eclipse-temurin:21-jre-alpine
+LABEL maintainer="VocTech Archaeology"
+LABEL description="Vocabulaire technique d'archéologie"
+
+# Arguments pour la configuration de l'application
+ARG SPRING_PROFILES_ACTIVE=prod
+ARG DB_URL
+ARG DB_USERNAME
+ARG DB_PASSWORD
+ARG APP_PORT=8080
+
+# Variables d'environnement pour la configuration
+ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+ENV SPRING_DATASOURCE_URL=${DB_URL}
+ENV SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+ENV SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+ENV SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
+ENV SERVER_PORT=${APP_PORT}
+
+# Création d'un utilisateur non-root pour la sécurité
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Configuration du volume pour les logs et autres données persistantes
+VOLUME /tmp
+VOLUME /logs
+
+# Définition du répertoire de travail
+WORKDIR /app
+
+# Copie des dépendances et des classes depuis l'étape de build
+COPY --from=build /app/target/*.jar app.jar
+
+# Exposition du port
+EXPOSE ${APP_PORT}
+
+# Commande d'exécution avec optimisations JVM
+ENTRYPOINT ["java", \
+            "-Djava.security.egd=file:/dev/./urandom", \
+            "-XX:+UseContainerSupport", \
+            "-XX:MaxRAMPercentage=75.0", \
+            "-jar", \
+            "app.jar"]
+
+# Healthcheck pour vérifier l'état de l'application
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD wget -q --spider http://localhost:${APP_PORT}/actuator/health || exit 1

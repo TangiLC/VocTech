@@ -1,13 +1,10 @@
 package com.voctech.controller;
 
-import com.voctech.model.ERole;
-import com.voctech.model.Role;
 import com.voctech.model.User;
 import com.voctech.payload.JwtResponse;
 import com.voctech.payload.LoginRequest;
 import com.voctech.payload.MessageResponse;
 import com.voctech.payload.SignupRequest;
-import com.voctech.repository.RoleRepository;
 import com.voctech.repository.UserRepository;
 import com.voctech.security.jwt.JwtTokenProvider;
 import com.voctech.security.service.UserDetailsImpl;
@@ -17,21 +14,20 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Contrôleur d'authentification 
+ * Contrôleur d'authentification
  * permettant aux utilisateurs de s'inscrire et de se connecter.
  */
 @RestController
@@ -47,9 +43,6 @@ public class AuthController {
 
   @Autowired
   private UserRepository userRepository;
-
-  @Autowired
-  private RoleRepository roleRepository;
 
   @Autowired
   private PasswordEncoder encoder;
@@ -93,11 +86,10 @@ public class AuthController {
     String jwt = jwtTokenProvider.generateToken(authentication);
 
     UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    List<String> roles = userDetails
-      .getAuthorities()
-      .stream()
-      .map(item -> item.getAuthority())
-      .collect(Collectors.toList());
+    String role = userDetails.getAuthorities().stream()
+    .map(GrantedAuthority::getAuthority)
+    .findFirst()
+    .orElse(null);
 
     return ResponseEntity.ok(
       new JwtResponse(
@@ -105,7 +97,7 @@ public class AuthController {
         userDetails.getId(),
         userDetails.getUsername(),
         userDetails.getEmail(),
-        roles
+        role
       )
     );
   }
@@ -140,7 +132,7 @@ public class AuthController {
     if (userRepository.existsByUsername(signUpRequest.getUsername())) {
       return ResponseEntity
         .badRequest()
-        .body(new MessageResponse("Erreur: Nom d'utilisateur déjà pris!"));
+        .body(new MessageResponse("Erreur: Nom d'utilisateur déjà existant!"));
     }
 
     if (userRepository.existsByEmail(signUpRequest.getEmail())) {
@@ -149,46 +141,27 @@ public class AuthController {
         .body(new MessageResponse("Erreur: Email déjà utilisé!"));
     }
 
-    // Création du compte utilisateur
+    // Créer l'utilisateur avec le constructeur existant
     User user = new User(
       signUpRequest.getUsername(),
       signUpRequest.getEmail(),
       encoder.encode(signUpRequest.getPassword())
     );
 
-    Set<String> strRoles = signUpRequest.getRoles();
-    Set<Role> roles = new HashSet<>();
+    // Déterminer le rôle basé sur la requête
+    String requestedRole = null;
+    /*if (
+      signUpRequest.getRole() != null && !signUpRequest.getRole().isEmpty()
+    ) {
+      requestedRole = signUpRequest.getRole().iterator().next();
+    }*/
 
-    if (strRoles == null) {
-      Role userRole = roleRepository
-        .findByName(ERole.USER)
-        .orElseThrow(() ->
-          new RuntimeException("Erreur: Role USER est introuvable.")
-        );
-      roles.add(userRole);
-    } else {
-      strRoles.forEach(role -> {
-        switch (role) {
-          case "admin":
-            Role adminRole = roleRepository
-              .findByName(ERole.ADMIN)
-              .orElseThrow(() ->
-                new RuntimeException("Erreur: Role ADMIN est introuvable.")
-              );
-            roles.add(adminRole);
-            break;
-          default:
-            Role userRole = roleRepository
-              .findByName(ERole.USER)
-              .orElseThrow(() ->
-                new RuntimeException("Erreur: Role USER est introuvable.")
-              );
-            roles.add(userRole);
-        }
-      });
-    }
+    // Assigner le rôle (par défaut USER)
+    String roleString = "admin".equalsIgnoreCase(requestedRole)
+      ? "ADMIN"
+      : "USER";
+    user.setRole(roleString);
 
-    user.setRoles(roles);
     userRepository.save(user);
 
     return ResponseEntity.ok(

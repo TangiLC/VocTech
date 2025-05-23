@@ -13,13 +13,13 @@ export class AdminGuard {
   canActivate(): boolean {
     // Vérifie si l'utilisateur est authentifié et a le rôle admin
     if (
-      this.authService.isAuthenticated() &&
-      this.authService.hasRole('ADMIN')
+      this.authService.isAuthenticated$() &&
+      this.authService.hasRole$('ROLE_ADMIN')
     ) {
       return true;
     }
 
-    if (this.authService.isAuthenticated()) {
+    if (this.authService.isAuthenticated$()) {
       this.router.navigate(['/access-denied']);
       return false;
     }

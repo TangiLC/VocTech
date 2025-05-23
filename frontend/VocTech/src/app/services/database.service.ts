@@ -15,7 +15,8 @@ export class DatabaseService {
    * Construit les headers avec le token d'authentification
    */
   private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
+    const token = localStorage.getItem('token');
+
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 

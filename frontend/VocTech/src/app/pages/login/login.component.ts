@@ -14,6 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
@@ -27,6 +28,7 @@ import { AuthService } from '../../services/auth.service';
     MatButtonModule,
     ReactiveFormsModule,
     MatCardModule,
+    MatIconModule,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
@@ -43,12 +45,14 @@ export class LoginComponent implements OnInit, OnDestroy {
       username: 'Username',
       password: 'Password',
       login: 'Connect to VocTech',
+      guest: 'Visit VocTech as Guest',
       credentialErrorMessage: 'Invalid username or password!',
     },
     fr: {
       username: "Nom d'utilisateur",
       password: 'Mot de passe',
       login: 'Se connecter à VocTech',
+      guest: "Visiter VocTech en tant qu'invité",
       credentialErrorMessage: "Nom d'utilisateur ou mot de passe invalide !",
     },
   };
@@ -98,7 +102,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.router.navigate(['/themes']);
+          this.router.navigate(['/search']);
         },
         error: () => {
           this.errorMessage =

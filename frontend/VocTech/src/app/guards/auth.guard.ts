@@ -11,7 +11,7 @@ export class AuthGuard {
   private authService = inject(AuthService);
 
   canActivate(): boolean {
-    if (this.authService.isAuthenticated()) {
+    if (this.authService.isAuthenticated$()) {
       return true;
     }
 

@@ -1,6 +1,8 @@
 <div class="login-wrapper">
   <mat-card class="login-card">
-    <mat-card-title><h2>{{ labels[currentLanguage].login }}</h2></mat-card-title>
+    <mat-card-title>
+      <h2>{{ labels[currentLanguage].login }}</h2>
+    </mat-card-title>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <mat-form-field appearance="outline">
@@ -12,10 +14,17 @@
         <mat-label>{{ labels[currentLanguage].password }}</mat-label>
         <input matInput type="password" formControlName="password" required>
       </mat-form-field>
-
-      <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-        {{ labels[currentLanguage].login }}
-      </button>
+      <div class="button-container">
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+          <mat-icon>how_to_reg</mat-icon> {{ labels[currentLanguage].login }}
+        </button>
+      </div>
+      <div class="button-container">
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading"
+          (click)="loginForm.patchValue({ username: 'guest', password: 'Fedora1*' })">
+          <mat-icon>person_outline</mat-icon> {{ labels[currentLanguage].guest }}
+        </button>
+      </div>
 
       <p class="error" *ngIf="errorMessage">{{ labels[currentLanguage].credentialErrorMessage }}</p>
     </form>

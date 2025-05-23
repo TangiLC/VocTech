@@ -5,11 +5,18 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,6 +44,11 @@ public class JwtTokenProvider {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("id", userPrincipal.getId());
+    claims.put("username", userPrincipal.getUsername());
+    claims.put("role", userPrincipal.getRole());
+
     SecretKey key = Keys.hmacShaKeyFor(
       jwtSecret.getBytes(StandardCharsets.UTF_8)
     );
@@ -44,7 +56,7 @@ public class JwtTokenProvider {
     return Jwts
       .builder()
       .setSubject(userPrincipal.getUsername())
-      .claim("roles", userPrincipal.getAuthorities())
+      .setClaims(claims)
       .setIssuedAt(now)
       .setExpiration(expiryDate)
       .signWith(key)
@@ -63,7 +75,11 @@ public class JwtTokenProvider {
       .parseClaimsJws(token)
       .getBody();
 
-    return claims.getSubject();
+    String username = claims.getSubject();
+    if (username == null) {
+      username = claims.get("username", String.class);
+    }
+    return username;
   }
 
   public boolean validateToken(String authToken) {
@@ -73,8 +89,6 @@ public class JwtTokenProvider {
       );
       Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
       return true;
-    } catch (SignatureException ex) {
-      logger.error("Invalid JWT signature");
     } catch (MalformedJwtException ex) {
       logger.error("Invalid JWT token");
     } catch (ExpiredJwtException ex) {
@@ -92,5 +106,32 @@ public class JwtTokenProvider {
       return headerValue.substring(jwtTokenPrefix.length() + 1);
     }
     return null;
+  }
+
+  public Authentication getAuthentication(String token) {
+    Claims claims = Jwts
+      .parser()
+      .setSigningKey(jwtSecret)
+      .parseClaimsJws(token)
+      .getBody();
+
+    Long id = Long.valueOf(claims.get("id").toString());
+    String username = claims.get("username", String.class);
+    String role = claims.get("role", String.class);
+    GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+    List<GrantedAuthority> authorities = List.of(authority);
+
+    UserDetails userDetails = org.springframework.security.core.userdetails.User
+      .builder()
+      .username(username)
+      .password("")
+      .authorities(authorities)
+      .build();
+
+    return new UsernamePasswordAuthenticationToken(
+      userDetails,
+      token,
+      authorities
+    );
   }
 }

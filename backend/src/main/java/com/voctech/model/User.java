@@ -3,10 +3,11 @@ package com.voctech.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
 
   @Id
@@ -28,29 +30,40 @@ public class User {
   private Long id;
 
   @NotBlank
-  @Size(max = 20)
+  @Size(min = 3, max = 50)
+  @Column(nullable = false, unique = true)
   private String username;
 
   @NotBlank
-  @Size(max = 50)
+  @Size(min = 8, max = 100)
+  @Column(nullable = false)
+  private String password;
+
+  @NotBlank
   @Email
+  @Size(max = 100)
+  @Column(nullable = false, unique = true)
   private String email;
 
   @NotBlank
-  @Size(max = 120)
-  private String password;
-
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-    name = "user_roles",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "role_id")
+  @Pattern(
+    regexp = "^(USER|ADMIN|GUEST)$",
+    message = "Role must be USER, ADMIN or GUEST"
   )
-  private Set<Role> roles = new HashSet<>();
+  @Column(nullable = false, length = 10)
+  private String role;
 
   public User(String username, String email, String password) {
     this.username = username;
     this.email = email;
     this.password = password;
+  }
+
+  public String getRole() {
+    return role;
+  }
+
+  public void setRole(String role) {
+    this.role = role;
   }
 }

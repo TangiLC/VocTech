@@ -19,13 +19,20 @@ export class ThemeService {
   }
 
   private loadThemes(): void {
-    const token = this.authService.getToken();
-    this.http
-      .get<Theme[]>(this.apiUrl, { headers: { Authorization: `Bearer ${token}` } })
-      .subscribe({
-        next: themes => this.themesSubject.next(themes),
-        error: err => console.error('Échec du chargement des thèmes', err),
-      });
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      this.http
+        .get<Theme[]>(this.apiUrl, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .subscribe({
+          next: (themes) => this.themesSubject.next(themes),
+          error: (err) => console.error('Échec du chargement des thèmes', err),
+        });
+    } else {
+      console.error('Aucun token disponible pour charger les thèmes');
+    }
   }
 
   refresh(): void {

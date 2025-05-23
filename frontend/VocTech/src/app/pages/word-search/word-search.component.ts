@@ -14,7 +14,7 @@ import { WordResponse } from '../../dto/wordResponse.dto';
   selector: 'app-word-search',
   imports: [
     CommonModule,
-    ThemeCardComponent,
+    //ThemeCardComponent,
     MatCardModule,
     WordSearchInputComponent,
     WordsTableComponent,

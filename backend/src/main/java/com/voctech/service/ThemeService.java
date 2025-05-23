@@ -45,7 +45,7 @@ public class ThemeService {
    * @param themeIds Liste des ID des thèmes
    * @return Un ensemble d'objets Theme correspondant aux ID fournis
    */
-  private Set<Theme> getThemesByIds(List<Integer> themeIds) {
+  public Set<Theme> getThemesByIds(List<Integer> themeIds) {
     Set<Theme> themes = new HashSet<>();
     if (themeIds != null) {
       themeIds.forEach(id -> themeRepository.findById(id).ifPresent(themes::add)

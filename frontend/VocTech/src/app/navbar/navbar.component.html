@@ -16,7 +16,7 @@
       }}</a>
     <a mat-button routerLink="/themes">{{ (languageService.language$ | async) === 'fr' ? labels.fr.theme :
       labels.en.theme }}</a>
-    <a mat-button routerLink="/database" *ngIf="isAdmin()">{{ (languageService.language$ | async) === 'fr' ?
+    <a mat-button routerLink="/database" *ngIf="isAdmin$ | async">{{ (languageService.language$ | async) === 'fr' ?
       labels.fr.database :
       labels.en.database }}</a>
   </nav>
@@ -47,7 +47,7 @@
       {{ labels[currentLanguage].word }}
     </button>
 
-    <button mat-button (click)="navigateTo('/database')" *ngIf="isAdmin()">
+    <button mat-button (click)="navigateTo('/database')" *ngIf="isAdmin$ | async">
       {{ labels[currentLanguage].database }}
     </button>
   </ng-container>
