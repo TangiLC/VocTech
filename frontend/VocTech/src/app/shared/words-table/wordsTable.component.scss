@@ -1,0 +1,39 @@
+.theme-badge {
+  display: inline-block;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.translation-item {
+  display: inline-flex;
+  //align-items: baseline;
+  white-space: nowrap;
+  gap: 2px;
+}
+
+.copy-icon {
+  font-size: 0.6rem;
+  padding: 2px;
+  margin: 0;
+  vertical-align: text-top;
+  transition: transform 0.2s ease;
+  transform-origin: bottom left;
+
+  &:hover {
+    color: #1976d2;
+    transform: scale(1.4) translateY(0.4rem);
+  }
+}
+
+.no-data {
+  padding: 1em;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.7);
+  font-style: italic;
+
+  mat-icon {
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.7);
+    vertical-align: middle;
+  }
+}

@@ -1,0 +1,30 @@
+.theme-container {
+  min-height: 90%;
+  background-color: #f5f5f5;
+  background-image: url("/assets/Chauvet1.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* 1 colonne par défaut pour mobile */
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Écrans entre 768px et 1400px : 2 colonnes */
+@media screen and (min-width: 768px) and (max-width: 1399px) {
+  .theme-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Écrans au-delà de 1400px : 3 colonnes */
+@media screen and (min-width: 1400px) {
+  .theme-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

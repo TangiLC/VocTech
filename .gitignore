@@ -111,3 +111,6 @@ docker-compose.override.yaml
 .gitignore
 .gitmodules
 .gitkeep
+
+## DuckDNS Token
+duckDNS.Token

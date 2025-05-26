@@ -1,0 +1,21 @@
+<mat-form-field appearance="fill" class="full-width">
+  <mat-label>{{ currentLabels.label }}</mat-label>
+  <input matInput [formControl]="searchControl" [placeholder]="currentLabels.placeholder"
+  [minLength]="3"/>
+
+  <mat-error *ngIf="searchControl.hasError('pattern')">
+    {{ currentLabels.patternError }}
+  </mat-error>
+</mat-form-field>
+
+<div *ngIf="results$ | async as results">
+  <mat-list *ngIf="results.length > 0; else noResults">
+    <mat-list-item *ngFor="let word of results">
+      {{ word.word }} <small>({{ word.language }})</small>
+    </mat-list-item>
+  </mat-list>
+
+  <ng-template #noResults>
+    <p>{{ currentLabels.noResults }}</p>
+  </ng-template>
+</div>

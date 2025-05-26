@@ -1,0 +1,11 @@
+<mat-card class="theme-card">
+  <mat-card-header >
+    <mat-card-title>
+      {{ getTitle() }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content >
+    <p>{{ getContent() }}</p>
+  </mat-card-content>
+  <app-word-search-input [themeId]=0 (results)="results$ = $event"></app-word-search-input>
+  <app-word-table [data$]="results$" [isThemeShown]=true></app-word-table>
+</mat-card>
