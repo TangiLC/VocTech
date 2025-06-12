@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * Contrôleur REST pour la gestion des mots et leur association aux thèmes.
  */
 @RestController
-@RequestMapping("/voctech")
+@RequestMapping("/api/voctech")
 @Tag(
   name = "Voctech",
   description = "API pour la gestion du vocabulaire technique"

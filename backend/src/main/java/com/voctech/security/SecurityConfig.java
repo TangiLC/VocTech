@@ -74,10 +74,10 @@ public class SecurityConfig {
             "/swagger-resources/**"
           )
           .permitAll()
-          .requestMatchers("/auth/**")
+          .requestMatchers("/api/auth/**")
           .permitAll()
-          .requestMatchers("/database/**")
-          .hasAuthority("ADMIN")
+          .requestMatchers("/api/database/**")
+          .hasRole("ADMIN")
           .anyRequest()
           .authenticated()
       )

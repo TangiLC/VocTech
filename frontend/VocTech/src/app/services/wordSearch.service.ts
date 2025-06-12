@@ -9,7 +9,7 @@ import { WordResponse } from '../dto/wordResponse.dto';
   providedIn: 'root',
 })
 export class WordSearchService {
-  private apiUrl = '/voctech';
+  private apiUrl = '/api/voctech';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

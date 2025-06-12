@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/database")
+@RequestMapping("/api/database")
 @Tag(
   name = "Database",
   description = "API pour la gestion de la base de données du dictionnaire"

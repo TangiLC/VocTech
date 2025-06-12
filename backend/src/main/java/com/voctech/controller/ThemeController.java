@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * Contrôleur REST pour la gestion des thèmes.
  */
 @RestController
-@RequestMapping("/voctech")
+@RequestMapping("/api/voctech")
 @Tag(
   name = "Voctech - Thèmes",
   description = "API pour la gestion des thèmes"

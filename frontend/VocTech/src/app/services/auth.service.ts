@@ -19,7 +19,7 @@ export interface JwtResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8082/auth';
+  private readonly apiUrl = 'http://localhost:8082/api/auth';
 
   // Subjects maintenus en mémoire et initialisés depuis le localStorage
   private tokenSubject = new BehaviorSubject<string | null>(

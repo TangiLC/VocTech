@@ -36,14 +36,17 @@
       <th mat-header-cell *matHeaderCellDef> Traduction(s) </th>
       <td mat-cell *matCellDef="let element">
         <ng-container *ngFor="let traduc of getTranslationList(element); let i = index">
-          <span class="translation-item">{{ traduc }}
-            <span aria-label="Ctrl+C" (click)="copyWord(traduc)">
-              <mat-icon class="copy-icon" fontIcon="content_copy"></mat-icon>
-            </span></span>
+          <ng-container *ngIf="splitData(traduc) as parts">
+            <span class="translation-item">
+              {{ parts[0] }}{{ parts[1] }}
+              <span aria-label="Ctrl+C" (click)="copyWord(traduc)">
+                <mat-icon class="copy-icon" fontIcon="content_copy"></mat-icon>
+              </span>
+            </span>
+          </ng-container>
+          <!-- tiret entre traductions -->
           <span *ngIf="i < getTranslationList(element).length - 1">-</span>
         </ng-container>
-
-        <span *ngIf="getTranslationList(element).length === 0">-</span>
       </td>
     </ng-container>
 

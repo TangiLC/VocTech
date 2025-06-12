@@ -97,6 +97,17 @@ export class WordsTableComponent implements OnInit, OnChanges {
     return word.relations?.translation?.map((t) => t.word) ?? [];
   }
 
+  getSplitIndex(word: string): number {
+  return Math.min(4, word.length);
+}
+
+splitData(word: string): [string, string] {
+  const idx = this.getSplitIndex(word);
+  const firstPart = word.slice(0, idx);
+  const restPart  = word.slice(idx);
+  return [firstPart, restPart];
+}
+
   getTranslationLanguages(word: WordResponse): string {
     const langs = new Set(
       word.relations?.translation?.map((t) => t.language) || []
