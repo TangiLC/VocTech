@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ThemeService } from '../../services/theme.service';
 import { LanguageService } from '../../services/language.service';
-import { WordResponse } from './../../dto/wordResponse.dto';
+import { WordResponse } from '../../dto/wordResponse.dto';
 import bgColors from '../theme-card/theme-colors.json';
 import { Observable } from 'rxjs';
 import { Theme } from '../../dto/theme.dto';
