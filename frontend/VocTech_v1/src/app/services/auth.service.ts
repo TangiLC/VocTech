@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { encodeTries } from '../utils/remaining';
+import { encodeTries, decodeTries } from '../utils/remaining'; 
 
 export interface User {
   id: number;
@@ -22,42 +22,82 @@ export interface JwtResponse {
 export class AuthService {
   private readonly apiUrl = 'http://localhost:8082/api/auth';
 
-  // Subjects maintenus en mémoire et initialisés depuis le localStorage
   private tokenSubject = new BehaviorSubject<string | null>(
     localStorage.getItem('token')
   );
   public token$ = this.tokenSubject.asObservable();
 
   private userSubject = new BehaviorSubject<User | null>(
-    JSON.parse(localStorage.getItem('user') || 'null')
+    this.initializeUserFromStorage()
   );
   public user$ = this.userSubject.asObservable();
 
+  private remainingQueriesSubject = new BehaviorSubject<number>(
+    decodeTries(localStorage.getItem('remainQ')) ?? 0
+  );
+  public remainingQueries$ = this.remainingQueriesSubject.asObservable();
+
   constructor(private http: HttpClient, private router: Router) {}
 
+  private initializeUserFromStorage(): User | null {
+    const token = localStorage.getItem('token');
+    const userStorage = localStorage.getItem('user');
+
+    if (!token || !userStorage) {
+      return null;
+    }
+
+    try {
+      const userFromStorage = JSON.parse(userStorage);
+      const payload = this.decodeJwtPayload(token);
+
+      if (!payload || payload.exp * 1000 <= Date.now()) {
+        this.cleanupStorage();
+        return null;
+      }
+
+      const formatRole = (r: string) => r.replace(/^ROLE_/, '');
+      return {
+        id: userFromStorage.id,
+        username: userFromStorage.username,
+        role: formatRole(payload.role || 'GUEST'),
+      };
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation de l'utilisateur", error);
+      this.cleanupStorage();
+      return null;
+    }
+  }
+
+  private cleanupStorage(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('remainQ');
+    this.remainingQueriesSubject.next(0);
+  }
+
   /**
-   * Envoi des identifiants, stockage du token et de l'utilisateur
+   * 🔐 Login + initialisation remainingQueries
    */
   login(username: string, password: string): Observable<JwtResponse> {
     return this.http
       .post<JwtResponse>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap((resp) => {
-          // Stockage dans le localStorage
           localStorage.setItem('token', resp.token);
-          localStorage.setItem('remainQ', encodeTries(3));
+
+          const remaining = 8;
+          localStorage.setItem('remainQ', encodeTries(remaining));
+          this.remainingQueriesSubject.next(remaining);
 
           this.tokenSubject.next(resp.token);
 
-          // Construction de l'objet User et stockage
           const formatRole = (r: string) => r.replace(/^ROLE_/, '');
-
           const usr: User = {
             id: resp.id,
             username: resp.username,
             role: formatRole(resp.role),
           };
-          this.userSubject.next(usr);
 
           const { role, ...usrForStorage } = usr;
           localStorage.setItem('user', JSON.stringify(usrForStorage));
@@ -66,50 +106,31 @@ export class AuthService {
       );
   }
 
-  /**
-   * Déconnexion : nettoyage et redirection
-   */
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('remainQ');
+    this.cleanupStorage();
     this.tokenSubject.next(null);
     this.userSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Indique si un token valide est présent
-   */
   isAuthenticated$(): Observable<boolean> {
     return this.token$.pipe(
       map((token) => {
-        if (!token) {
-          return false;
-        }
+        if (!token) return false;
         const payload = this.decodeJwtPayload(token);
         return !!payload && payload.exp! * 1000 > Date.now();
       })
     );
   }
 
-  /**
-   * Expose l'utilisateur courant
-   */
   currentUser$(): Observable<User | null> {
     return this.user$;
   }
 
-  /**
-   * Vérifie si l'utilisateur a un rôle donné
-   */
   hasRole$(role: string): Observable<boolean> {
     return this.user$.pipe(map((user) => !!user && user.role === role));
   }
 
-  /**
-   * Décodage du payload JWT (base64)
-   */
   private decodeJwtPayload(token: string): any {
     try {
       const payloadBase64 = token.split('.')[1];
@@ -119,5 +140,14 @@ export class AuthService {
       console.error('Erreur décodage JWT', error);
       return null;
     }
+  }
+  remainingQueries(): Observable<number> {
+    return this.remainingQueries$;
+  }
+
+  updateRemainingQueries(newValue: number): void {
+    if (newValue<0){newValue=0}
+    localStorage.setItem('remainQ', newValue===0?'000000':encodeTries(newValue));
+    this.remainingQueriesSubject.next(newValue);
   }
 }

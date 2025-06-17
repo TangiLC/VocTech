@@ -16,7 +16,7 @@ export function encodeTries(tries: number, length = 22): string {
   return arr.join('') + checksumChar;
 }
 
-export function decodeTries(encoded: string): number {
+export function decodeTries(encoded: string | null): number {
   if (!encoded || encoded.length < 3) return 0;
 
   const dataPart = encoded.slice(0, -1); // sans checksum

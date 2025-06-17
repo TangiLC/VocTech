@@ -5,6 +5,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,14 +15,17 @@ import {
   filter,
   switchMap,
   map,
+  take,
 } from 'rxjs/operators';
-import { Observable, Subscription, EMPTY } from 'rxjs';
+import { Observable, Subscription, EMPTY, fromEvent } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { WordSearchService } from '../../services/wordSearch.service';
 import { WordResponse } from '../../dto/wordResponse.dto';
 import { LanguageService } from '../../services/language.service';
+import { decodeTries, encodeTries } from '../../utils/remaining';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-word-search-input',
@@ -34,13 +38,15 @@ import { LanguageService } from '../../services/language.service';
     MatListModule,
   ],
   templateUrl: './wordSearch-input.component.html',
-  styleUrls:['./wordSearch-input.component.scss']
+  styleUrls: ['./wordSearch-input.component.scss'],
 })
 export class WordSearchInputComponent implements OnInit, OnDestroy {
   @Input() themeId?: number;
   @Output() results = new EventEmitter<Observable<WordResponse[]>>();
 
-  searchControl = new FormControl('', [Validators.pattern(/^[\w\s\-’?]+$/)]);
+  searchControl = new FormControl('', [
+    Validators.pattern(/^[\w\s\-’?’àâäéèêëïîôöùûüçœæÀÂÄÉÈÊËÏÎÔÖÙÛÜÇŒÆ]+$/),
+  ]);
   results$!: Observable<WordResponse[]>;
 
   currentLanguage: 'en' | 'fr' = 'fr'; // valeur par défaut
@@ -65,7 +71,8 @@ export class WordSearchInputComponent implements OnInit, OnDestroy {
 
   constructor(
     private wordSearchService: WordSearchService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -74,6 +81,8 @@ export class WordSearchInputComponent implements OnInit, OnDestroy {
     });
 
     const results$ = this.searchControl.valueChanges.pipe(
+      filter((value): value is string => !!value && value.trim().length > 0),
+      map((value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')),
       debounceTime(300),
       distinctUntilChanged(),
       filter((value) => this.isValidInput(value)),
@@ -86,13 +95,36 @@ export class WordSearchInputComponent implements OnInit, OnDestroy {
     );
 
     this.results.emit(results$);
+
+    /*fromEvent<KeyboardEvent>(document, 'keydown')
+      .pipe(filter((event) => event.key === 'Enter'))
+      .subscribe(() => {
+        this.onEnterPress();
+      });*/
+  }
+
+  onEnterPress(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+
+    console.log('ENTER');
+
+  this.authService.remainingQueries().pipe(take(1)).subscribe((current) =>  {
+      /*if (current <= 0) {
+        console.warn('Plus de requêtes disponibles.');
+        return;
+      }*/
+
+      const updated = current - 1;
+      this.authService.updateRemainingQueries(updated);
+      //console.log(`remainingQueries décrémenté à ${updated}`);
+    });
   }
 
   ngOnDestroy() {
     this.langSub?.unsubscribe();
   }
 
-  isValidInput(value: string | null): boolean {
+  isValidInput(value: string | null | undefined): boolean {
     return !!value && value.length >= 3 && this.searchControl.valid;
   }
 
