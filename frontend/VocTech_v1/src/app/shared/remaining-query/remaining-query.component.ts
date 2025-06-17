@@ -27,15 +27,17 @@ export class RemainingQueryComponent {
     fr: [
       'Vous êtes abonné',
       'Vous utilisez la version gratuite, il vous reste',
-      'requête',
+      'requête','requêtes',
       'disponible',
+      'Vous avez épuisé les requêtes de la version gratuite',
       'Cliquez sur ce lien pour vous abonner.',
     ],
     en: [
       'You are subscribed',
       'You are using the free version. You have',
-      'request',
+      'request','requests',
       'left',
+      'You have reached the limit of the free version',
       'Click this link to subscribe.',
     ],
   };

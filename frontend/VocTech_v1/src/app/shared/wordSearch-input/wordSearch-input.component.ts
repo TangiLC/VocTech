@@ -80,44 +80,47 @@ export class WordSearchInputComponent implements OnInit, OnDestroy {
       this.currentLanguage = lang;
     });
 
+    this.authService.remainingQueries$.subscribe((remain) => {
+      if (remain <= 0) {
+        this.searchControl.disable({ emitEvent: false });
+      } else {
+        this.searchControl.enable({ emitEvent: false });
+      }
+    });
+
     const results$ = this.searchControl.valueChanges.pipe(
       filter((value): value is string => !!value && value.trim().length > 0),
       map((value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')),
       debounceTime(300),
       distinctUntilChanged(),
       filter((value) => this.isValidInput(value)),
-      switchMap((value) => this.wordSearchService.searchWords(value || '')),
-      map((words) =>
-        this.themeId
-          ? words.filter((w) => w.themeId.includes(this.themeId!))
-          : words
+      switchMap((value) =>
+        this.authService.remainingQueries().pipe(
+          take(1),
+          filter((remaining) => remaining > 0),
+          switchMap(() => this.wordSearchService.searchWords(value || '')),
+          map((words) =>
+            this.themeId
+              ? words.filter((w) => w.themeId.includes(this.themeId!))
+              : words
+          )
+        )
       )
     );
 
     this.results.emit(results$);
-
-    /*fromEvent<KeyboardEvent>(document, 'keydown')
-      .pipe(filter((event) => event.key === 'Enter'))
-      .subscribe(() => {
-        this.onEnterPress();
-      });*/
   }
 
-  onEnterPress(event: KeyboardEvent): void {
-    if (event.key !== 'Enter') return;
+  onEnterPress(): void {
+    //if (event.key !== 'Enter') return;
 
-    console.log('ENTER');
-
-  this.authService.remainingQueries().pipe(take(1)).subscribe((current) =>  {
-      /*if (current <= 0) {
-        console.warn('Plus de requêtes disponibles.');
-        return;
-      }*/
-
-      const updated = current - 1;
-      this.authService.updateRemainingQueries(updated);
-      //console.log(`remainingQueries décrémenté à ${updated}`);
-    });
+    this.authService
+      .remainingQueries()
+      .pipe(take(1))
+      .subscribe((current) => {
+        const updated = current - 1;
+        this.authService.updateRemainingQueries(updated);
+      });
   }
 
   ngOnDestroy() {

@@ -86,7 +86,7 @@ export class AuthService {
         tap((resp) => {
           localStorage.setItem('token', resp.token);
 
-          const remaining = 8;
+          const remaining = 6;
           localStorage.setItem('remainQ', encodeTries(remaining));
           this.remainingQueriesSubject.next(remaining);
 
