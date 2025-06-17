@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import {
   Component,
   Input,
@@ -14,8 +15,9 @@ import { ThemeService } from '../../services/theme.service';
 import { LanguageService } from '../../services/language.service';
 import { WordResponse } from '../../dto/wordResponse.dto';
 import bgColors from '../theme-card/theme-colors.json';
-import { Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { Theme } from '../../dto/theme.dto';
+import { decodeTries } from '../../utils/remaining';
 
 @Component({
   selector: 'app-word-table',
@@ -34,12 +36,14 @@ export class WordsTableComponent implements OnInit, OnChanges {
   @Input() data$!: Observable<WordResponse[]>;
   @Input() isThemeShown = false;
 
+  isGuest: boolean = true;
   themes: Theme[] = [];
   currentLanguage: 'fr' | 'en';
   displayedColumns: string[] = [];
 
   constructor(
     private themeService: ThemeService,
+    private authService: AuthService,
     private languageService: LanguageService,
     private snackBar: MatSnackBar
   ) {
@@ -47,9 +51,16 @@ export class WordsTableComponent implements OnInit, OnChanges {
     this.updateDisplayedColumns();
   }
 
-  dataSource?: WordResponse[] ;
+  dataSource?: WordResponse[];
 
   ngOnInit() {
+    combineLatest([
+      this.authService.hasRole$('ROLE_ADMIN'),
+      this.authService.hasRole$('ROLE_USER'),
+    ]).subscribe(([isAdmin, isUser]) => {
+      this.isGuest = !(isAdmin || isUser);
+    });
+
     this.themeService.themes$.subscribe((themes) => (this.themes = themes));
     this.languageService.language$.subscribe(
       (lang) => (this.currentLanguage = lang)
@@ -68,14 +79,10 @@ export class WordsTableComponent implements OnInit, OnChanges {
   }
 
   updateDisplayedColumns() {
-    const baseColumns = ['word', 'language'];
+    const baseColumns = ['word'];
     const themeColumn = this.isThemeShown ? ['theme'] : [];
 
-    const additionalColumns = [
-      'synonyms',
-      'translations',
-      'translationLanguages',
-    ];
+    const additionalColumns = ['synonyms', 'translations'];
 
     this.displayedColumns = [
       ...baseColumns,
@@ -89,24 +96,66 @@ export class WordsTableComponent implements OnInit, OnChanges {
     return synonyms?.length ? synonyms.join(', ') : '-';
   }
 
-  getTranslations(word: WordResponse): string {
+  /*getTranslations(word: WordResponse): string {
     const translations = word.relations?.translation?.map((t) => t.word);
     return translations?.length ? translations.join(', ') : '-';
-  }
+  }*/
   getTranslationList(word: WordResponse): string[] {
-    return word.relations?.translation?.map((t) => t.word) ?? [];
+    return (
+      word.relations?.translation?.map((t) => t.language + ' ' + t.word) ?? []
+    );
   }
 
   getSplitIndex(word: string): number {
-  return Math.min(4, word.length);
-}
+    return Math.min(4, word.length);
+  }
 
-splitData(word: string): [string, string] {
-  const idx = this.getSplitIndex(word);
-  const firstPart = word.slice(0, idx);
-  const restPart  = word.slice(idx);
-  return [firstPart, restPart];
-}
+  getTriesLeft(): number {
+    if (this.isGuest) {
+      const encodedRemainQ = localStorage.getItem('remainQ');
+      return encodedRemainQ ? decodeTries(encodedRemainQ) : 0;
+    } else {
+      return 10;
+    }
+  }
+
+  getLanguageFlag(lang: string): string {
+    switch (lang.toLowerCase()) {
+      case 'fr':
+        return '🇫🇷';
+      case 'en':
+        return '🇬🇧';
+      case 'it':
+        return '🇮🇹';
+      case 'de':
+        return '🇩🇪';
+      case 'jp':
+        return '🇯🇵';
+      case 'es':
+        return '🇪🇸';
+      default:
+        return lang;
+    }
+  }
+
+  splitData(data: string): [string, string, string] {
+    const triesLeft = this.getTriesLeft();
+    console.log('tries', localStorage.getItem('remainQ'), triesLeft);
+    let languagePart = data.slice(0, 2);
+
+    if (triesLeft > 2) {
+      return [languagePart, data.slice(2, 4), data.slice(4)];
+    } else if (triesLeft === 2) {
+      const visibleCount = Math.max(4, data.length - 3);
+      const visiblePart = data.slice(2, visibleCount);
+      const maskedPart = '*'.repeat(data.length - visibleCount);
+      return [languagePart, visiblePart, maskedPart];
+    } else {
+      const visiblePart = data.slice(2, 4);
+      const maskedPart = '*'.repeat(data.length - 1);
+      return [languagePart, visiblePart, maskedPart];
+    }
+  }
 
   getTranslationLanguages(word: WordResponse): string {
     const langs = new Set(
@@ -137,14 +186,15 @@ splitData(word: string): [string, string] {
   }
 
   copyWord(word: string): void {
+    let toClipboard = word.slice(2);
     let mssg =
       this.currentLanguage == 'fr'
         ? ['Copie du mot', 'dans le presse-papier', 'Erreur de copie']
         : ['Copy of word', 'into clipboard', 'Copy error'];
     navigator.clipboard
-      .writeText(word)
+      .writeText(toClipboard)
       .then(() => {
-        this.snackBar.open(`${mssg[0]} « ${word} » ${mssg[1]}`, '', {
+        this.snackBar.open(`${mssg[0]} « ${toClipboard} » ${mssg[1]}`, '', {
           duration: 2000,
         });
       })

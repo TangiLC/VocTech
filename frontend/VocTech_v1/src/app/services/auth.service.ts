@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { encodeTries } from '../utils/remaining';
 
 export interface User {
   id: number;
@@ -44,14 +45,17 @@ export class AuthService {
         tap((resp) => {
           // Stockage dans le localStorage
           localStorage.setItem('token', resp.token);
+          localStorage.setItem('remainQ', encodeTries(3));
 
           this.tokenSubject.next(resp.token);
 
           // Construction de l'objet User et stockage
+          const formatRole = (r: string) => r.replace(/^ROLE_/, '');
+
           const usr: User = {
             id: resp.id,
             username: resp.username,
-            role: resp.role,
+            role: formatRole(resp.role),
           };
           this.userSubject.next(usr);
 
@@ -68,6 +72,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('remainQ');
     this.tokenSubject.next(null);
     this.userSubject.next(null);
     this.router.navigate(['/login']);

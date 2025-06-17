@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Theme } from '../../dto/theme.dto';
 import { ThemeService } from '../../services/theme.service';
 import { LanguageService } from '../../services/language.service';
-import { ThemeCardComponent } from '../../shared/theme-card/theme-card.component';
+import { RemainingQueryComponent } from '../../shared/remaining-query/remaining-query.component';
 import { MatCardModule } from '@angular/material/card';
 import { WordSearchInputComponent } from '../../shared/wordSearch-input/wordSearch-input.component';
 import { WordsTableComponent } from '../../shared/words-table/wordsTable.component';
@@ -14,7 +14,7 @@ import { WordResponse } from '../../dto/wordResponse.dto';
   selector: 'app-word-search',
   imports: [
     CommonModule,
-    //ThemeCardComponent,
+    RemainingQueryComponent,
     MatCardModule,
     WordSearchInputComponent,
     WordsTableComponent,

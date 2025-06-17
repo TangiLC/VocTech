@@ -1,0 +1,15 @@
+.remaining-query {
+  padding: 1rem;
+  font-size: .9rem;
+  color: #333;
+  text-align: center;
+
+  .subscribe-link {
+    color: #007bff;
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}

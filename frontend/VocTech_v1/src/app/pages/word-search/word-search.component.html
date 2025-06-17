@@ -8,4 +8,5 @@
   </mat-card-content>
   <app-word-search-input [themeId]=0 (results)="results$ = $event"></app-word-search-input>
   <app-word-table [data$]="results$" [isThemeShown]=true></app-word-table>
+  <app-remaining-query></app-remaining-query>
 </mat-card>
