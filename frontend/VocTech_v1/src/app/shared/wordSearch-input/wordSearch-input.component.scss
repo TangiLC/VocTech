@@ -1,4 +1,24 @@
 .full-width {
-  width: 100%;
+  width: 96%;
   display: block;
+  margin:auto;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 10;
+  border: 0;
+  background-color: transparent;
+}
+
+.search-icon:hover{
+ transform: translateY(-45%) translateX(-10%) scale(1.3);
+ color:darkslategrey;
 }

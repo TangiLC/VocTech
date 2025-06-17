@@ -20,6 +20,7 @@ import {
 import { Observable, Subscription, EMPTY, fromEvent } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { WordSearchService } from '../../services/wordSearch.service';
 import { WordResponse } from '../../dto/wordResponse.dto';
@@ -36,6 +37,7 @@ import { AuthService } from '../../services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatListModule,
+    MatIcon,
   ],
   templateUrl: './wordSearch-input.component.html',
   styleUrls: ['./wordSearch-input.component.scss'],

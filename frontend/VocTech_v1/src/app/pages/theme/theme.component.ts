@@ -5,11 +5,12 @@ import { Theme } from '../../dto/theme.dto';
 import { ThemeService } from '../../services/theme.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeCardComponent } from '../../shared/theme-card/theme-card.component';
+import { RemainingQueryComponent } from '../../shared/remaining-query/remaining-query.component';
 
 @Component({
   selector: 'app-theme',
   standalone: true,
-  imports: [ CommonModule, ThemeCardComponent ],
+  imports: [ CommonModule, ThemeCardComponent,RemainingQueryComponent ],
   templateUrl: './theme.component.html',
   styleUrls: ['./theme.component.scss'],
 })

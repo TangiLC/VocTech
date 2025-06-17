@@ -1,6 +1,6 @@
 <mat-toolbar color="primary">
   <!-- Home Button -->
-  <button mat-icon-button routerLink="/themes">
+  <button mat-icon-button routerLink="/search">
     <mat-icon>home</mat-icon>
   </button>
 
@@ -40,11 +40,12 @@
 <!-- Dropdown Menu - Only for mobile view -->
 <div *ngIf="isMenuOpen() && !(isHomePage()) && isMobileView()" class="mobile-menu">
   <ng-container *ngIf="(languageService.language$ | async) as currentLanguage">
-    <button mat-button (click)="navigateTo('/theme')">
-      {{ labels[currentLanguage].theme }}
-    </button>
-    <button mat-button (click)="navigateTo('/mot')">
+    <button mat-button (click)="navigateTo('/search')">
       {{ labels[currentLanguage].word }}
+    </button>
+
+    <button mat-button (click)="navigateTo('/themes')">
+      {{ labels[currentLanguage].theme }}
     </button>
 
     <button mat-button (click)="navigateTo('/database')" *ngIf="isAdmin$ | async">

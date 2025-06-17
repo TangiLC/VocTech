@@ -3,6 +3,7 @@ import { Component, Input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { WordSearchInputComponent } from '../wordSearch-input/wordSearch-input.component';
 import { WordsTableComponent } from '../words-table/wordsTable.component';
+import { RemainingQueryComponent } from '../remaining-query/remaining-query.component';
 import bgColors from './theme-colors.json';
 import { Observable } from 'rxjs';
 import { WordResponse } from '../../dto/wordResponse.dto';
@@ -17,6 +18,7 @@ import { WordResponse } from '../../dto/wordResponse.dto';
     MatCardModule,
     WordSearchInputComponent,
     WordsTableComponent,
+    //RemainingQueryComponent,
   ],
 })
 export class ThemeCardComponent {

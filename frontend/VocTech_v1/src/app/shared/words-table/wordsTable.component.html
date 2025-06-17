@@ -10,12 +10,6 @@
         {{ element.word }} </td>
     </ng-container>
 
-    <!-- Langue 
-    <ng-container matColumnDef="language">
-      <th mat-header-cell *matHeaderCellDef> L </th>
-      <td mat-cell *matCellDef="let element"> {{ element.language=='fr'?'🇫🇷' : '🇬🇧' }} </td>
-    </ng-container>-->
-
     <!-- Thème-->
     <ng-container matColumnDef="theme">
       <th mat-header-cell *matHeaderCellDef> Thème </th>
@@ -50,8 +44,9 @@
 
           <ng-container *ngIf="splitData(traduc) as parts">
             <span class="translation-item">
-              {{ getLanguageFlag(parts[0]) }}{{ parts[1] }}{{ parts[2] }}
-              <span aria-label="Ctrl+C" (click)="copyWord(traduc)">
+              {{ getLanguageFlag(parts[0]) }}{{ parts[1] }}
+              <span class="blurred-part">{{ parts[2] }}</span>
+              <span *ngIf="parts[2].length < 1" aria-label="Ctrl+C" (click)="copyWord(traduc)">
                 <mat-icon class="copy-icon" fontIcon="content_copy"></mat-icon>
               </span>
             </span>
@@ -62,11 +57,6 @@
       </td>
     </ng-container>
 
-    <!-- Langue(s) des traductions 
-    <ng-container matColumnDef="translationLanguages">
-      <th mat-header-cell *matHeaderCellDef> L </th>
-      <td mat-cell *matCellDef="let element"> {{ getTranslationLanguages(element)=='fr'?'🇫🇷' : '🇬🇧' }} </td>
-    </ng-container>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns" class="header-row"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

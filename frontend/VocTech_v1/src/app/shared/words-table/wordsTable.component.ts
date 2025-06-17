@@ -140,21 +140,43 @@ export class WordsTableComponent implements OnInit, OnChanges {
 
   splitData(data: string): [string, string, string] {
     const triesLeft = this.getTriesLeft();
-    console.log('tries', localStorage.getItem('remainQ'), triesLeft);
-    let languagePart = data.slice(0, 2);
 
-    if (triesLeft > 2) {
-      return [languagePart, data.slice(2, 4), data.slice(4)];
-    } else if (triesLeft === 2) {
-      const visibleCount = Math.max(4, data.length - 3);
-      const visiblePart = data.slice(2, visibleCount);
-      const maskedPart = '*'.repeat(data.length - visibleCount);
-      return [languagePart, visiblePart, maskedPart];
-    } else {
-      const visiblePart = data.slice(2, 4);
-      const maskedPart = '*'.repeat(data.length - 1);
-      return [languagePart, visiblePart, maskedPart];
+    const languagePart = data.slice(0, 2);
+    const word = data.slice(2);
+
+    if (triesLeft > 3) {
+      return [languagePart, word, ''];
     }
+
+    let lettersToKeep: number = 1;
+
+    if (triesLeft <= 0) {
+      lettersToKeep = 1;
+    } else {
+      let keepPercentage: number;
+      switch (triesLeft) {
+        case 3:
+          keepPercentage = 0.75;
+          break;
+        case 2:
+          keepPercentage = 0.45;
+          break;
+        case 1:
+          keepPercentage = 0.25;
+          break;
+        default:
+          keepPercentage = 1;
+          break;
+      }
+
+      const calculatedKeep = Math.ceil(word.length * keepPercentage);
+      lettersToKeep = word.length < 3 ? 1 : Math.max(1, calculatedKeep);
+    }
+
+    const visiblePart = word.slice(0, lettersToKeep+1);
+    const maskedPart = '*'.repeat(word.length - lettersToKeep-1);
+
+    return [languagePart, visiblePart, maskedPart];
   }
 
   getTranslationLanguages(word: WordResponse): string {

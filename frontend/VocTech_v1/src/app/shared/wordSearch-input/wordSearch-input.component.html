@@ -1,7 +1,11 @@
 <mat-form-field appearance="fill" class="full-width">
   <mat-label>{{ currentLabels.label }}</mat-label>
   <input matInput [formControl]="searchControl" [placeholder]="currentLabels.placeholder"
-  [minLength]="3"/>
+  [minLength]="3" (keyup.enter)="onEnterPress()"/>
+
+  <button mat-icon-button class="search-icon" (click)="onEnterPress()" matSuffix>
+      <mat-icon>search</mat-icon>
+    </button>
 
   <mat-error *ngIf="searchControl.hasError('pattern')">
     {{ currentLabels.patternError }}

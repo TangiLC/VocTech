@@ -12,11 +12,15 @@
 }
 
 .login-card {
-  width: 40dvw;
-  padding: 35px;
+  width: 50dvw;
+  padding: 30px;
   text-align: center;
   background: rgba(196, 164, 132, .5);
 }
+
+ @media screen and (max-width: 782px) {
+  .login-card { width: 80dvw;}
+ }
 
 mat-form-field {
   width: 100%;
