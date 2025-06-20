@@ -1,0 +1,15 @@
+<div class="subscribe-container">
+  <ng-container *ngIf="languageService.language$ | async as currentLanguage">
+    <h2>{{title[currentLanguage]}}</h2><div></div>
+    <div>
+      {{ message[currentLanguage][0] }}</div>
+    <div>
+      <button mat-button color="primary" (click)="onClick()">
+        {{ message[currentLanguage][1] }}
+      </button>
+    </div>
+    <div>
+      {{ message[currentLanguage][2] }}
+    </div>
+  </ng-container>
+</div>

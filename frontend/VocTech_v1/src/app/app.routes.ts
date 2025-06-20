@@ -27,6 +27,14 @@ export const routes: Routes = [
     canActivate: [() => inject(AuthGuard).canActivate()],
   },
   {
+    path: 'subscribe',
+    loadComponent: () =>
+      import('./pages/subscribe/subscribe.component').then(
+        (c) => c.SubscribeComponent
+      ),
+  },
+
+  {
     path: 'database',
     loadComponent: () =>
       import('./pages/database/database.component').then(
