@@ -234,6 +234,26 @@ public class WordService {
     );
   }
 
+/**
+   * Récupère les n derniers mots selon leur ID (ordre décroissant).
+   * Si n=0, retourne tous les mots.
+   *
+   * @param n Le nombre de mots à récupérer (0 pour tous)
+   * @return Liste des n derniers mots, sous forme de WordResponse
+   */
+  public List<WordResponse> getLastNWords(int n) {
+    if (n == 0) {
+      return getAllWords();
+    }
+    
+    List<Word> words = wordRepository.findLastNWords(n);
+    return words.stream()
+      .limit(n)
+      .map(this::mapWordToResponse)
+      .collect(Collectors.toList());
+  }
+
+
   /**
    * Récupère tous les mots dans la base de données.
    *

@@ -35,4 +35,12 @@ export class WordSearchService {
       .get<WordResponse[]>(`${this.apiUrl}/words`, { headers })
       .pipe(tap(response => console.log('Réponse API (all words):', response)));
   }
+
+  getLastNWords(n: number = 10): Observable<WordResponse[]> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http
+      .get<WordResponse[]>(`${this.apiUrl}/words/last?n=${n}`, { headers })
+      .pipe(tap(response => console.log(`Réponse API (last ${n} words):`, response)));
+  }
 }

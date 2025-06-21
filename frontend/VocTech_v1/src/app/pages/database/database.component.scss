@@ -1,6 +1,79 @@
+.database-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-around;
+  align-items: flex-start;
+  margin: 1rem;
+}
+
+.form-card {
+  flex: 1;
+  width: 45%;
+}
+
+// Styles pour le formulaire principal
+
+.word-card {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.relation-group {
+  margin: 1rem 0;
+
+  .section-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+// Styles pour le formulaire de relation
+.relation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .relation-group {
+    margin: 1rem 0;
+
+    .section-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+// Tableau des mots en pleine largeur
+.words-table-card {
+  width: 100%;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .database-container {
+    flex-direction: column;
+  }
+
+  .form-card {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
 .success-snackbar {
   .mat-mdc-snack-bar-container {
-    &, .mat-mdc-snack-bar-surface {
+    &,
+    .mat-mdc-snack-bar-surface {
       background-color: #4caf50;
       color: #fff;
     }
@@ -9,7 +82,8 @@
 
 .error-snackbar {
   .mat-mdc-snack-bar-container {
-    &, .mat-mdc-snack-bar-surface {
+    &,
+    .mat-mdc-snack-bar-surface {
       background-color: #f44336;
       color: #fff;
     }

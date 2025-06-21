@@ -142,4 +142,33 @@ public class WordController {
   public ResponseEntity<?> deleteWord(@PathVariable Long id) {
     return wordService.deleteWord(id);
   }
+
+
+  /**
+   * Récupère les n derniers mots selon leur ID (ordre décroissant).
+   * Si n=0, retourne tous les mots.
+   *
+   * @param n Le nombre de mots à récupérer (0 pour tous)
+   * @return Liste des n derniers mots (WordResponse)
+   */
+  @Operation(
+    summary = "Récupère les n derniers mots",
+    description = "Renvoie les n derniers mots ajoutés selon leur ID. Si n=0, renvoie tous les mots."
+  )
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Liste des mots récupérée avec succès"),
+    @ApiResponse(responseCode = "401", description = "Non autorisé — authentification requise"),
+    @ApiResponse(responseCode = "400", description = "Paramètre n invalide"),
+    @ApiResponse(responseCode = "500", description = "Erreur interne du serveur")
+  })
+  @GetMapping("/words/last")
+  public ResponseEntity<List<WordResponse>> getLastNWords(
+    @RequestParam(defaultValue = "10") int n
+  ) {
+    if (n < 0) {
+      return ResponseEntity.badRequest().build();
+    }
+    List<WordResponse> words = wordService.getLastNWords(n);
+    return ResponseEntity.ok(words);
+  }
 }

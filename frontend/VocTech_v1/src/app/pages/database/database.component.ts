@@ -41,6 +41,7 @@ import { WordResponse } from '../../dto/wordResponse.dto';
 })
 export class AppDatabaseComponent {
   form!: FormGroup;
+  relationForm!: FormGroup;
   themes$!: Observable<Theme[]>;
   words$!: Observable<WordResponse[]>;
   languages = [
@@ -64,8 +65,9 @@ export class AppDatabaseComponent {
   }
 
   ngOnInit(): void {
-    this.words$ = this.wordSearchService.getAllWords();
+    this.words$ = this.wordSearchService.getLastNWords(6);
     this.buildForm();
+    this.buildRelationForm();
   }
 
   private buildForm() {
@@ -77,6 +79,14 @@ export class AppDatabaseComponent {
       language2: ['en', Validators.required],
       themeIds2: [[], Validators.required],
       relation: ['translation', Validators.required],
+    });
+  }
+
+  private buildRelationForm() {
+    this.relationForm = this.fb.group({
+      sourceId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+      targetId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+      relationType: ['translation', Validators.required],
     });
   }
 
@@ -130,18 +140,39 @@ export class AppDatabaseComponent {
               },
               error: (err) => {
                 console.error('[synonym]', err);
-                 const errorMessage = err.error?.error || err.message || 'Unknown';
-          this.openSnackBar(`Erreur Synonym: ${errorMessage}`, true);
+                const errorMessage =
+                  err.error?.error || err.message || 'Unknown';
+                this.openSnackBar(`Erreur Synonym: ${errorMessage}`, true);
               },
             });
         },
         error: (err) => {
           console.error('[search word1]', err);
-           const errorMessage = err.error?.error || err.message || 'Unknown';
+          const errorMessage = err.error?.error || err.message || 'Unknown';
           this.openSnackBar(`Erreur Word1: ${errorMessage}`, true);
         },
       });
     }
+  }
+
+  onSubmitRelation() {
+    if (this.relationForm.invalid) return;
+
+    const { sourceId, targetId, relationType } = this.relationForm.value;
+
+    this.databaseService
+      .addRelation(parseInt(sourceId, 10), parseInt(targetId, 10), relationType)
+      .subscribe({
+        next: () => {
+          this.resetRelationForm();
+          this.openSnackBar('Relation ajoutée avec succès');
+        },
+        error: (err) => {
+          console.error('[addRelation]', err);
+          const errorMessage = err.error?.error || err.message || 'Unknown';
+          this.openSnackBar(`Erreur: ${errorMessage}`, true);
+        },
+      });
   }
 
   private openSnackBar(message: string, isError: boolean = false) {
@@ -160,6 +191,14 @@ export class AppDatabaseComponent {
       language2: 'en',
       themeIds2: [],
       relation: 'translation',
+    });
+  }
+
+  private resetRelationForm() {
+    this.relationForm.reset({
+      sourceId: '',
+      targetId: '',
+      relationType: 'translation',
     });
   }
 }

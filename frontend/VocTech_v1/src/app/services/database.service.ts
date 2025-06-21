@@ -50,4 +50,20 @@ export class DatabaseService {
       headers: this.getHeaders(),
     });
   }
+
+  /** Ajoute une relation entre deux mots existants */
+  addRelation(
+    sourceId: number,
+    targetId: number,
+    relation: string
+  ): Observable<any> {
+    const body = {
+      source: { id: sourceId },
+      target: { id: targetId },
+      relation,
+    };
+    return this.http.patch(`${API_BASE}/api/database/addrelation`, body, {
+      headers: this.getHeaders(),
+    });
+  }
 }
