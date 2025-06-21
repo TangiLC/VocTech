@@ -1,10 +1,11 @@
 {
-  "name": "voc-tech-repair",
+  "name": "VocTech",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:ssr": "ng build && ng run Voctech:server",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:VocTech": "node dist/VocTech/server/server.mjs"

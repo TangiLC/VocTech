@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { encodeTries, decodeTries } from '../utils/remaining'; 
+import { encodeTries, decodeTries } from '../utils/remaining';
 
 export interface User {
   id: number;
@@ -20,7 +20,7 @@ export interface JwtResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8082/api/auth';
+  private readonly apiUrl = 'https://patrick.le-cadre.net/api/auth';
 
   private tokenSubject = new BehaviorSubject<string | null>(
     localStorage.getItem('token')

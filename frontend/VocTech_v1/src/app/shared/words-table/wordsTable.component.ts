@@ -81,10 +81,12 @@ export class WordsTableComponent implements OnInit, OnChanges {
   updateDisplayedColumns() {
     const baseColumns = ['word'];
     const themeColumn = this.isThemeShown ? ['theme'] : [];
+    const wordId = this.authService.hasRole$('ROLE_ADMIN')?['id']:[];
 
     const additionalColumns = ['synonyms', 'translations'];
 
     this.displayedColumns = [
+      ...wordId,
       ...baseColumns,
       ...themeColumn,
       ...additionalColumns,

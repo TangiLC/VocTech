@@ -3,6 +3,13 @@
     class="mat-elevation-z1 full-width-table">
 
     <!-- Mot -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>id</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.id }} </td>
+    </ng-container>
+
+    <!-- Mot -->
     <ng-container matColumnDef="word">
       <th mat-header-cell *matHeaderCellDef> Mot </th>
       <td mat-cell *matCellDef="let element">
