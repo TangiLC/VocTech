@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Theme } from '../dto/theme.dto';
 import { AuthService } from './auth.service';
 
-const API_BASE = 'http://localhost:8082';
+const API_BASE = '/api/';
 
 @Injectable({ providedIn: 'root' })
 export class DatabaseService {
@@ -26,7 +26,7 @@ export class DatabaseService {
     relation: string
   ): Observable<any> {
     const payload = { entries, relation };
-    return this.http.post(`${API_BASE}/api/database/addpair`, payload, {
+    return this.http.post(`${API_BASE}database/addpair`, payload, {
       headers: this.getHeaders(),
     });
   }
@@ -34,7 +34,7 @@ export class DatabaseService {
   /** Recherche un mot existant par sa chaîne */
   searchWord(word: string): Observable<{ id: number }[]> {
     const params = new HttpParams().set('word', word);
-    return this.http.get<{ id: number }[]>(`${API_BASE}/api/voctech/search`, {
+    return this.http.get<{ id: number }[]>(`${API_BASE}voctech/search`, {
       params,
       headers: this.getHeaders(),
     });
@@ -46,7 +46,7 @@ export class DatabaseService {
     target: { word: string; language: string; themeId: number[] }
   ): Observable<any> {
     const body = { source: { id: sourceId }, target, relation: 'synonym' };
-    return this.http.patch(`${API_BASE}/api/database/addword`, body, {
+    return this.http.patch(`${API_BASE}database/addword`, body, {
       headers: this.getHeaders(),
     });
   }
@@ -62,7 +62,7 @@ export class DatabaseService {
       target: { id: targetId },
       relation,
     };
-    return this.http.patch(`${API_BASE}/api/database/addrelation`, body, {
+    return this.http.patch(`${API_BASE}database/addrelation`, body, {
       headers: this.getHeaders(),
     });
   }

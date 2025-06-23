@@ -65,9 +65,13 @@ export class AppDatabaseComponent {
   }
 
   ngOnInit(): void {
-    this.words$ = this.wordSearchService.getLastNWords(6);
+    this.loadWords();
     this.buildForm();
     this.buildRelationForm();
+  }
+
+  private loadWords(): void {
+    this.words$ = this.wordSearchService.getLastNWords(6);
   }
 
   private buildForm() {
@@ -111,6 +115,7 @@ export class AppDatabaseComponent {
       this.databaseService.addPair(entries, relation).subscribe({
         next: () => {
           this.resetForm();
+          this.loadWords(); // Recharger les mots après succès
           this.openSnackBar('Enregistrement effectué avec succès');
         },
         error: (err) => {
@@ -136,6 +141,7 @@ export class AppDatabaseComponent {
             .subscribe({
               next: () => {
                 this.resetForm();
+                this.loadWords(); // Recharger les mots après succès
                 this.openSnackBar('Synonyme ajouté avec succès');
               },
               error: (err) => {
@@ -165,6 +171,7 @@ export class AppDatabaseComponent {
       .subscribe({
         next: () => {
           this.resetRelationForm();
+          this.loadWords(); // Recharger les mots après succès
           this.openSnackBar('Relation ajoutée avec succès');
         },
         error: (err) => {

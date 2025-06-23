@@ -5,13 +5,13 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Theme } from '../dto/theme.dto';
 import { AuthService } from './auth.service';
 
-const API_BASE = 'http://localhost:8082';
+const API_BASE = '/api/';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private apiUrl = `${API_BASE}/api/voctech/themes`;
+  private apiUrl = `${API_BASE}voctech/themes`;
 
   private themesSubject = new BehaviorSubject<Theme[]>([]);
   public themes$ = this.themesSubject.asObservable();
