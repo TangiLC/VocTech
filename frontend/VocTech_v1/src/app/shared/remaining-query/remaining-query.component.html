@@ -1,0 +1,26 @@
+<div class="remaining-query" *ngIf="(role$ | async) as role">
+  <ng-container *ngIf="lang$ | async as lang">
+    <ng-container [ngSwitch]="role">
+      <p *ngSwitchCase="'ADMIN'">{{ mssg[lang][0] }}</p>
+      <p *ngSwitchCase="'USER'">{{ mssg[lang][0] }}</p>
+      <div *ngSwitchCase="'GUEST'">
+        <ng-container *ngIf="(remainingQueries$ | async) !== null">
+          <ng-container *ngIf="remainingQueries$ | async as remainingQueries; else zeroCase">
+            <p>
+              {{ mssg[lang][1] }} {{ remainingQueries }}
+              {{ remainingQueries > 1 ? mssg[lang][3] : mssg[lang][2] }}
+              {{ mssg[lang][4] }}.
+            </p>
+          </ng-container>
+          <ng-template #zeroCase>
+            <p>
+              {{ mssg[lang][5] }}.
+            </p>
+          </ng-template>
+        </ng-container>
+        <a href="/subscribe" class="subscribe-link">{{ mssg[lang][6] }}</a>
+      </div>
+      <p *ngSwitchDefault>-</p>
+    </ng-container>
+  </ng-container>
+</div>

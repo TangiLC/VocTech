@@ -74,10 +74,10 @@ public class SecurityConfig {
             "/swagger-resources/**"
           )
           .permitAll()
-          .requestMatchers("/auth/**")
+          .requestMatchers("/api/auth/**")
           .permitAll()
-          .requestMatchers("/database/**")
-          .hasAuthority("ADMIN")
+          .requestMatchers("/api/database/**")
+          .hasRole("ADMIN")
           .anyRequest()
           .authenticated()
       )
@@ -92,7 +92,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("*")); // Accepter tous les domaines (ajuster si nécessaire)
+    configuration.setAllowedOrigins(List.of("http://localhost:4200","https://patrick.le-cadre.net")); // Accepter tous les domaines (ajuster si nécessaire)
     configuration.setAllowedMethods(
       List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
     );

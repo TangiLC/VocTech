@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
  * permettant aux utilisateurs de s'inscrire et de se connecter.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @Tag(
   name = "Authentification",
   description = "Endpoints pour l'authentification et l'inscription des utilisateurs"

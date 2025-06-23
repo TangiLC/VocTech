@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   // Liste des chemins qui ne nécessitent pas d'authentification - alignés avec SecurityConfig
   private final List<String> PUBLIC_PATHS = Arrays.asList(
-    "/auth/",
+    "/api/auth/",
     "/swagger-ui/",
     "/v3/api-docs/",
     "/swagger-resources/",

@@ -1,0 +1,9 @@
+<div class="theme-container">
+  <div class="theme-grid">
+    <app-theme-card *ngFor="let theme of themes$ | async" [id]=theme.id
+      [title]="currentLanguage === 'fr' ? theme.nameFr : theme.nameEn"
+      [content]="currentLanguage === 'fr' ? theme.descFr : theme.descEn">
+    </app-theme-card>
+  </div>
+  <app-remaining-query></app-remaining-query>
+</div>

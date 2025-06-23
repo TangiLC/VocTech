@@ -20,4 +20,12 @@ public interface WordRepository extends JpaRepository<Word, Long> {
   List<Word> findByWordContainingIgnoreCase(@Param("word") String word);
 
   Optional<Word> findByWordIgnoreCase(String word);
+
+   @Query(
+    "SELECT w FROM Word w " +
+    "LEFT JOIN FETCH w.sourceRelations sr " +
+    "LEFT JOIN FETCH sr.wordTarget " +
+    "ORDER BY w.id DESC"
+  )
+  List<Word> findLastNWords(@Param("limit") int limit);
 }
