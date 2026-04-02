@@ -39,6 +39,9 @@ RUN npm ci --omit=dev
 # Expose le port utilisé par Express
 EXPOSE 4000
 
+ENV PORT=4000
+ENV BACKEND_URL=http://backend:8082
+
 # Labels (facultatif)
 LABEL maintainer="tangi@le-cadre.net"
 LABEL org.opencontainers.image.title="VocTech Archeology Frontend SSR"

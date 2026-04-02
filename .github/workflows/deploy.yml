@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          VOCTECH_ENV_FILE: ${{ secrets.VOCTECH_ENV_FILE }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: VOCTECH_ENV_FILE
+          script: |
+            set -euo pipefail
+
+            cd ${{ secrets.SERVER_APP_DIR }}
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            cat > .env <<'EOF'
+            ${VOCTECH_ENV_FILE}
+            EOF
+
+            docker compose up -d --build --remove-orphans
+            docker image prune -f

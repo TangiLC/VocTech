@@ -1,98 +1,26 @@
-# Stage 1: Build de l'application avec Maven
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Installation de Maven
-RUN apk add --no-cache maven
-
-# Copie du fichier POM et téléchargement des dépendances
-COPY pom.xml .
+COPY pom.xml ./
 RUN mvn dependency:go-offline -B
 
-# Copie du code source
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Compilation et packaging de l'application
-RUN mvn package -DskipTests
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
-
-# Stage 2: Image d'exécution optimisée
 FROM eclipse-temurin:21-jre-alpine
-
-# Arguments pour les labels dynamiques
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-ARG BUILD_NUMBER
-
-# Labels statiques
-LABEL maintainer="tangi@le-cadre.net"
-LABEL name="VocTech Archeology"
-LABEL description="Vocabulaire technique d'archéologie - Application Spring Boot pour la gestion du vocabulaire technique archéologique"
-LABEL vendor="VocTech"
-
-# Labels OCI avec valeurs dynamiques
-LABEL org.opencontainers.image.title="VocTech Archeology"
-LABEL org.opencontainers.image.description="Application de gestion du vocabulaire technique d'archéologie"
-LABEL org.opencontainers.image.version=${VERSION:-"0.0.1-SNAPSHOT"}
-LABEL org.opencontainers.image.created=${BUILD_DATE}
-LABEL org.opencontainers.image.revision=${VCS_REF}
-LABEL org.opencontainers.image.authors="tangi@le-cadre.net"
-LABEL org.opencontainers.image.vendor="VocTech"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.source="https://github.com/TangiLC/VocTech"
-LABEL org.opencontainers.image.documentation="https://github.com/TangiLC/VocTech/blob/main/README.md"
-LABEL org.opencontainers.image.url="https://github.com/TangiLC/VocTech"
-
-# Labels techniques
-LABEL java.version="21"
-LABEL spring.boot.version="3.4.3"
-LABEL database="MariaDB"
-LABEL build.number=${BUILD_NUMBER}
-
-# Installation de curl pour le healthcheck
-RUN apk add --no-cache curl
-
-# Arguments pour la configuration (cohérents avec .env)
-ARG SPRING_PROFILES_ACTIVE=prod
-ARG SPRING_DATASOURCE_URL
-ARG SPRING_DATASOURCE_USERNAME
-ARG SPRING_DATASOURCE_PASSWORD
-ARG APP_PORT=8082
-
-# Variables d'environnement pour la configuration
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-ENV SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-ENV SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-ENV SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-ENV SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
-ENV SERVER_PORT=${APP_PORT}
-
-# Création d'un utilisateur non-root pour la sécurité
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-
-# Configuration du volume pour les logs et autres données persistantes
-VOLUME /tmp
-VOLUME /logs
-
-# Définition du répertoire de travail
 WORKDIR /app
 
-# Copie des dépendances et des classes depuis l'étape de build
-COPY --from=build /app/target/*.jar app.jar
+RUN apk add --no-cache curl
+RUN addgroup -S spring && adduser -S spring -G spring
 
-# Exposition du port (utilise la variable)
-EXPOSE ${APP_PORT}
+COPY --from=build /app/target/*.jar /app/app.jar
 
-# Commande d'exécution avec optimisations JVM
-ENTRYPOINT ["java", \
-  "-Djava.security.egd=file:/dev/./urandom", \
-  "-XX:+UseContainerSupport", \
-  "-XX:MaxRAMPercentage=75.0", \
-  "-jar", \
-  "app.jar"]
+ENV SERVER_PORT=8082
+EXPOSE 8082
 
-# Healthcheck corrigé avec curl et port fixe
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+USER spring:spring
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
   CMD curl -f http://localhost:8082/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]

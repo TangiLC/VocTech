@@ -1,60 +1,86 @@
-
 services:
-  voctech-app:
+  mariadb:
+    image: mariadb:11.4
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MYSQL_DATABASE: voctech1
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      TZ: ${TZ}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -h localhost -u${SPRING_DATASOURCE_USERNAME} -p${SPRING_DATASOURCE_PASSWORD} --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: ${RESTART_POLICY}
+    networks:
+      - voctech_net
+
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      args:
-        - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-        - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-        - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-        - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-        - APP_PORT=${APP_PORT}
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-    environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=${JWT_EXPIRATION}
-      - TZ=${TZ}
     env_file:
       - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/voctech1
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_TOKEN_PREFIX: ${JWT_TOKEN_PREFIX}
+      JWT_HEADER: ${JWT_HEADER}
+      TZ: ${TZ}
+      SERVER_PORT: 8082
     depends_on:
-      - mysql
+      mariadb:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
     volumes:
       - voctech_logs:/logs
+    networks:
+      - voctech_net
 
-  voctech-frontend:
+  frontend:
     build:
-      context: ./frontend/VocTech_v1/
+      context: ./frontend/VocTech_v1
       dockerfile: Dockerfile
-    ports:
-      - "4200:4200"
     environment:
-      - TZ=${TZ}
-    restart: ${RESTART_POLICY}
+      TZ: ${TZ}
+      PORT: 4000
+      BACKEND_URL: http://backend:8082
     depends_on:
-      - voctech-app
-    # Pour que le frontend puisse appeler l'API backend
-    network_mode: "host"
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - MYSQL_DATABASE=voctech1
-      - MYSQL_USER=${SPRING_DATASOURCE_USERNAME}
-      - MYSQL_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - TZ=${TZ}
+      backend:
+        condition: service_healthy
     ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+      - "4200:4000"
     restart: ${RESTART_POLICY}
+    networks:
+      - voctech_net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
+    depends_on:
+      frontend:
+        condition: service_started
+    restart: ${RESTART_POLICY}
+    networks:
+      - voctech_net
+
+networks:
+  voctech_net:
+    driver: bridge
 
 volumes:
   db_data:

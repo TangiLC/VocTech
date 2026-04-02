@@ -4,6 +4,7 @@ import com.voctech.security.jwt.JwtAccessDeniedHandler;
 import com.voctech.security.jwt.JwtAuthenticationEntryPoint;
 import com.voctech.security.jwt.JwtAuthenticationFilter;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true) // Active les annotations @PreAuthorize, @PostAuthorize, etc.
 public class SecurityConfig {
+
+  @Value("${cors.allowed-origins:http://localhost:4200}")
+  private List<String> allowedOrigins;
+
+  @Value("${cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
+  private List<String> allowedMethods;
+
+  @Value("${cors.allowed-headers:Authorization,Content-Type,X-Auth-Token}")
+  private List<String> allowedHeaders;
 
   private final JwtAuthenticationEntryPoint unauthorizedHandler;
   private final JwtAccessDeniedHandler accessDeniedHandler;
@@ -71,7 +81,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
-            "/swagger-resources/**"
+            "/swagger-resources/**",
+            "/actuator/health"
           )
           .permitAll()
           .requestMatchers("/api/auth/**")
@@ -93,12 +104,9 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(List.of("http://localhost:4200","https://patrick.le-cadre.net")); // Accepter tous les domaines (ajuster si nécessaire)
-    configuration.setAllowedMethods(
-      List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-    );
-    configuration.setAllowedHeaders(
-      List.of("Authorization", "Content-Type", "X-Auth-Token")
-    );
+    configuration.setAllowedMethods(allowedMethods);
+    configuration.setAllowedOrigins(allowedOrigins);
+    configuration.setAllowedHeaders(allowedHeaders);
     configuration.setExposedHeaders(List.of("X-Auth-Token"));
     configuration.setAllowCredentials(true);
 

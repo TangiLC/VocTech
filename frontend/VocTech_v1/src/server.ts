@@ -8,9 +8,23 @@ import express from 'express';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
+const backendUrl = process.env['BACKEND_URL'] || 'http://backend:8082';
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+async function readRequestBody(req: express.Request): Promise<Buffer | undefined> {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return undefined;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  return chunks.length > 0 ? Buffer.concat(chunks) : undefined;
+}
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -23,6 +37,47 @@ const angularApp = new AngularNodeAppEngine();
  * });
  * ```
  */
+
+/**
+ * Proxy API requests to the backend service on the internal Docker network.
+ */
+app.use('/api', async (req, res, next) => {
+  try {
+    const targetUrl = new URL(req.originalUrl, backendUrl);
+    const headers = new Headers();
+
+    Object.entries(req.headers).forEach(([key, value]) => {
+      if (value === undefined) {
+        return;
+      }
+      if (key.toLowerCase() === 'host' || key.toLowerCase() === 'content-length') {
+        return;
+      }
+      headers.set(key, Array.isArray(value) ? value.join(',') : value);
+    });
+
+    const body = await readRequestBody(req);
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body,
+      redirect: 'manual',
+    });
+
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'transfer-encoding') {
+        return;
+      }
+      res.setHeader(key, value);
+    });
+
+    const responseBody = Buffer.from(await response.arrayBuffer());
+    res.send(responseBody);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Serve static files from /browser
