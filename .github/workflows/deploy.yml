@@ -29,9 +29,7 @@ jobs:
             git checkout main
             git pull --ff-only origin main
 
-            cat > .env <<'EOF'
-            ${VOCTECH_ENV_FILE}
-            EOF
+            printf '%s\n' "$VOCTECH_ENV_FILE" > .env
 
             docker compose up -d --build --remove-orphans
             docker image prune -f
