@@ -16,7 +16,7 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # Installation complète (dev + prod)
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copie du code source
 COPY . .
@@ -34,7 +34,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/package*.json ./
 
 # Réinstaller uniquement les dépendances nécessaires en prod
-RUN npm ci --omit=dev
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Expose le port utilisé par Express
 EXPOSE 4000
