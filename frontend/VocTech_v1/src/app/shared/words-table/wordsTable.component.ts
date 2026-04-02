@@ -37,6 +37,7 @@ export class WordsTableComponent implements OnInit, OnChanges {
   @Input() isThemeShown = false;
 
   isGuest: boolean = true;
+  isAdmin: boolean = false;
   themes: Theme[] = [];
   currentLanguage: 'fr' | 'en';
   displayedColumns: string[] = [];
@@ -55,10 +56,12 @@ export class WordsTableComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     combineLatest([
-      this.authService.hasRole$('ROLE_ADMIN'),
-      this.authService.hasRole$('ROLE_USER'),
+      this.authService.hasRole$('ADMIN'),
+      this.authService.hasRole$('USER'),
     ]).subscribe(([isAdmin, isUser]) => {
+      this.isAdmin = isAdmin;
       this.isGuest = !(isAdmin || isUser);
+      this.updateDisplayedColumns();
     });
 
     this.themeService.themes$.subscribe((themes) => (this.themes = themes));
@@ -81,7 +84,7 @@ export class WordsTableComponent implements OnInit, OnChanges {
   updateDisplayedColumns() {
     const baseColumns = ['word'];
     const themeColumn = this.isThemeShown ? ['theme'] : [];
-    const wordId = this.authService.hasRole$('ROLE_ADMIN')?['id']:[];
+    const wordId = this.isAdmin ? ['id'] : [];
 
     const additionalColumns = ['synonyms', 'translations'];
 

@@ -20,7 +20,7 @@ export interface JwtResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'https://patrick.le-cadre.net/api/auth';
+  private readonly apiUrl = '/api/auth';
 
   private tokenSubject = new BehaviorSubject<string | null>(
     localStorage.getItem('token')

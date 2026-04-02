@@ -94,7 +94,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       });
 
     this.authService
-      .hasRole$('ROLE_ADMIN')
+      .hasRole$('ADMIN')
       .pipe(takeUntil(this.destroy$))
       .subscribe((isAdmin) => {
         this.isAdminSubject.next(isAdmin);
@@ -103,7 +103,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private updateAdminStatus(): void {
     this.authService
-      .hasRole$('ROLE_ADMIN')
+      .hasRole$('ADMIN')
       .pipe(takeUntil(this.destroy$))
       .subscribe((isAdmin) => {
         const currentValue = this.isAdminSubject.value;

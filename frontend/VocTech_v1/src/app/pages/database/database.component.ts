@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -13,7 +18,18 @@ import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { Observable } from 'rxjs';
+import {
+  Observable,
+  of,
+  Subject,
+  EMPTY,
+  switchMap,
+  catchError,
+  tap,
+  startWith,
+  takeUntil,
+  shareReplay,
+} from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { Theme } from '../../dto/theme.dto';
 import { DatabaseService } from '../../services/database.service';
@@ -24,6 +40,7 @@ import { WordResponse } from '../../dto/wordResponse.dto';
 @Component({
   selector: 'app-database',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -39,19 +56,37 @@ import { WordResponse } from '../../dto/wordResponse.dto';
   templateUrl: './database.component.html',
   styleUrls: ['./database.component.scss'],
 })
-export class AppDatabaseComponent {
+export class AppDatabaseComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   relationForm!: FormGroup;
   themes$!: Observable<Theme[]>;
-  words$!: Observable<WordResponse[]>;
+
+  private reloadTrigger$ = new Subject<void>();
+  private destroy$ = new Subject<void>();
+
+  words$: Observable<WordResponse[]> = this.reloadTrigger$.pipe(
+    startWith(null),
+    switchMap(() =>
+      this.wordSearchService.getLastNWords(6).pipe(
+        catchError((err) => {
+          console.error('Erreur lors du chargement des mots:', err);
+          this.openSnackBar('Erreur lors du chargement des mots', true);
+          return of([]);
+        })
+      )
+    ),
+    shareReplay(1)
+  );
+
   languages = [
     { value: 'fr', viewValue: 'Français' },
     { value: 'en', viewValue: 'Anglais' },
   ];
+
   relations = [
     { value: 'translation', viewValue: 'Traduction' },
     { value: 'synonym', viewValue: 'Synonyme' },
-    //{ value: 'antonym', viewValue: 'Antonyme' },
+    // { value: 'antonym', viewValue: 'Antonyme' },
   ];
 
   constructor(
@@ -65,13 +100,17 @@ export class AppDatabaseComponent {
   }
 
   ngOnInit(): void {
-    this.loadWords();
     this.buildForm();
     this.buildRelationForm();
   }
 
-  private loadWords(): void {
-    this.words$ = this.wordSearchService.getLastNWords(6);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private triggerReload() {
+    this.reloadTrigger$.next();
   }
 
   private buildForm() {
@@ -106,58 +145,52 @@ export class AppDatabaseComponent {
       themeIds2,
       relation,
     } = this.form.value;
+
     const entries = [
       { word: word1, language: language1, themeId: themeIds1 },
       { word: word2, language: language2, themeId: themeIds2 },
     ];
 
     if (relation === 'translation' || relation === 'antonym') {
-      this.databaseService.addPair(entries, relation).subscribe({
-        next: () => {
+      this.databaseService.addPair(entries, relation).pipe(
+        tap(() => {
           this.resetForm();
-          this.loadWords(); // Recharger les mots après succès
+          this.triggerReload();
           this.openSnackBar('Enregistrement effectué avec succès');
-        },
-        error: (err) => {
+        }),
+        catchError((err) => {
           console.error(`[${relation}]`, err);
-          const errorMessage = err.error?.error || err.message || 'Unknown';
-          this.openSnackBar(`Erreur: ${errorMessage}`, true);
-        },
-      });
+          this.openSnackBar(`Erreur: ${err.error?.error || err.message || 'Unknown'}`, true);
+          return EMPTY;
+        }),
+        takeUntil(this.destroy$)
+      ).subscribe();
     } else if (relation === 'synonym') {
-      this.databaseService.searchWord(word1).subscribe({
-        next: (results) => {
+      this.databaseService.searchWord(word1).pipe(
+        switchMap((results) => {
           if (!results.length) {
             this.openSnackBar(`Mot ${word1} non trouvé`, true);
-            return;
+            return EMPTY;
           }
           const id1 = results[0].id;
-          this.databaseService
-            .addSynonym(id1, {
-              word: word2,
-              language: language2,
-              themeId: themeIds2,
-            })
-            .subscribe({
-              next: () => {
-                this.resetForm();
-                this.loadWords(); // Recharger les mots après succès
-                this.openSnackBar('Synonyme ajouté avec succès');
-              },
-              error: (err) => {
-                console.error('[synonym]', err);
-                const errorMessage =
-                  err.error?.error || err.message || 'Unknown';
-                this.openSnackBar(`Erreur Synonym: ${errorMessage}`, true);
-              },
-            });
-        },
-        error: (err) => {
-          console.error('[search word1]', err);
-          const errorMessage = err.error?.error || err.message || 'Unknown';
-          this.openSnackBar(`Erreur Word1: ${errorMessage}`, true);
-        },
-      });
+          return this.databaseService.addSynonym(id1, {
+            word: word2,
+            language: language2,
+            themeId: themeIds2,
+          });
+        }),
+        tap(() => {
+          this.resetForm();
+          this.triggerReload();
+          this.openSnackBar('Synonyme ajouté avec succès');
+        }),
+        catchError((err) => {
+          console.error('[synonym]', err);
+          this.openSnackBar(`Erreur Synonym: ${err.error?.error || err.message || 'Unknown'}`, true);
+          return EMPTY;
+        }),
+        takeUntil(this.destroy$)
+      ).subscribe();
     }
   }
 
@@ -168,18 +201,20 @@ export class AppDatabaseComponent {
 
     this.databaseService
       .addRelation(parseInt(sourceId, 10), parseInt(targetId, 10), relationType)
-      .subscribe({
-        next: () => {
+      .pipe(
+        tap(() => {
           this.resetRelationForm();
-          this.loadWords(); // Recharger les mots après succès
+          this.triggerReload();
           this.openSnackBar('Relation ajoutée avec succès');
-        },
-        error: (err) => {
+        }),
+        catchError((err) => {
           console.error('[addRelation]', err);
-          const errorMessage = err.error?.error || err.message || 'Unknown';
-          this.openSnackBar(`Erreur: ${errorMessage}`, true);
-        },
-      });
+          this.openSnackBar(`Erreur: ${err.error?.error || err.message || 'Unknown'}`, true);
+          return EMPTY;
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe();
   }
 
   private openSnackBar(message: string, isError: boolean = false) {
