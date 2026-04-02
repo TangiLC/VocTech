@@ -1,0 +1,35 @@
+mat-toolbar {
+  display: flex;
+  justify-content: space-between;
+   background-color: #c4a484;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.left-content {
+  font-size: 14px;
+}
+
+.disclaimer {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.footer-image-link {
+  display: flex;
+  align-items: center;
+}
+
+.footer-image {
+  height: 3rem;
+  width: auto;
+  display: block;
+  transform-origin: bottom right;
+}
+.footer-image:hover{
+ transform: scale(4);
+}
+

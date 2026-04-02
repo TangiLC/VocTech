@@ -1,0 +1,21 @@
+<!-- footer.component.html -->
+<mat-toolbar color="primary">
+  <span class="left-content">© T.LeCadre 2025</span>
+  <span class="spacer"></span>
+
+  <ng-container *ngIf="(languageService.language$ | async) as currentLanguage">
+    <span class="disclaimer">{{ disclaimerText[currentLanguage] }}</span>
+    <a
+      [href]="linkUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="footer-image-link"
+    >
+      <img
+        [src]="imageUrl"
+        alt="Paper version"
+        class="footer-image"
+      />
+    </a>
+  </ng-container>
+</mat-toolbar>

@@ -37,6 +37,7 @@ heapdump.hprof
 
 ## Spring Boot environment
 .env
+envfile.txt
 *.env
 application-*.yml
 application-*.properties
@@ -111,3 +112,6 @@ docker-compose.override.yaml
 .gitignore
 .gitmodules
 .gitkeep
+
+## DuckDNS Token
+duckDNS.Token
