@@ -104,8 +104,8 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(List.of("http://localhost:4200","https://patrick.le-cadre.net")); // Accepter tous les domaines (ajuster si nécessaire)
-    configuration.setAllowedMethods(allowedMethods);
     configuration.setAllowedOrigins(allowedOrigins);
+    configuration.setAllowedMethods(allowedMethods);
     configuration.setAllowedHeaders(allowedHeaders);
     configuration.setExposedHeaders(List.of("X-Auth-Token"));
     configuration.setAllowCredentials(true);

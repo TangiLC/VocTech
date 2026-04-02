@@ -44,6 +44,8 @@ application-*.properties
 secrets.yml
 config/
 config/*
+!backend/src/main/java/com/voctech/config/
+!backend/src/main/java/com/voctech/config/*.java
 
 # === FRONTEND (Angular) ===
 
