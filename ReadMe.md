@@ -50,15 +50,14 @@ Ce dépôt est organisé en monorepo :
 
 ---
 
-## 🧠 API Principales
+## 🧠 Routes API Principales
 
 ### 🌐 Voctech (vocabulaire)
 
 - `GET /api/voctech/words` : Liste complète des mots
-- `GET /api/voctech/words/last?n=10` : N derniers mots ajoutés
+- `GET /api/voctech/words/last?n=10` : N derniers mots ajoutés à la BDD
 - `GET /api/voctech/search?word=xxx` : Recherche libre dans les mots
 - `PATCH /api/voctech/` : Mise à jour d’un mot (sécurisé)
-- `DELETE /api/voctech/{id}` : Suppression d’un mot (sécurisé)
 
 ### 🎨 Thèmes
 
@@ -66,8 +65,8 @@ Ce dépôt est organisé en monorepo :
 
 ### 🧱 Relations et base de données (sécurisé Admin)
 
-- `POST /api/database/addpair` : Ajout de deux mots liés ensemble
-- `PATCH /api/database/addword` : Ajout d’un mot avec lien vers un existant
+- `POST /api/database/addpair` : Ajout de deux mots nouveaux liés ensemble (traduction ou synonyme)
+- `PATCH /api/database/addword` : Ajout d’un mot nouveau avec lien vers un existant
 - `PATCH /api/database/addrelation` : Ajout de lien entre deux mots existants
 
 ---
